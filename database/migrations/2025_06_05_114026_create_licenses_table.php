@@ -17,6 +17,8 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->onDelete('restrict');
             $table->foreignId('payment_id')->constrained('payments')->onDelete('cascade');
             $table->string('key')->unique();
+            $table->string('activated_domain')->nullable();
+            $table->string('activated_ip')->nullable();
             $table->enum('status', ['active', 'revoked', 'expired', 'refunded'])->default('active');
             $table->timestamp('issued_at')->useCurrent();
             $table->timestamps();
