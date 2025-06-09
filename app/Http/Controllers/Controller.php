@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\File;
 class Controller extends \Illuminate\Routing\Controller
 {
     // Auth & Dashboard Pages
+    public function index()
+    {
+        return view('frontend.index');
+    }
+    // Auth & Dashboard Pages
     public function login()
     {
         return view('login');
