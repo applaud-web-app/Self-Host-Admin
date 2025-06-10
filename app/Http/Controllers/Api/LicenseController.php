@@ -294,7 +294,7 @@ class LicenseController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->responseService->errorResponse(
-                'An unexpected error occurred. Please try again later.',
+                'An unexpected error occurred. Please try again later. : '. $e->getMessage(),
                 500
             );
         }
