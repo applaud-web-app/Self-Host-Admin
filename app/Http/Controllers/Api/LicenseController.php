@@ -73,4 +73,28 @@ class LicenseController extends Controller
             ],
         ]);
     }
+
+    public function debugDomain(Request $request)
+    {
+        // Get domain from Origin or Referer
+        $origin  = $request->headers->get('origin');
+        $referer = $request->headers->get('referer');
+        $domain = null;
+
+        if ($origin) {
+            $domain = parse_url($origin, PHP_URL_HOST);
+        } elseif ($referer) {
+            $domain = parse_url($referer, PHP_URL_HOST);
+        }
+        $domain = $domain ?: 'unknown';
+
+        // Get the whole request body for debug
+        $body = $request->all();
+
+        // Return only domain and the request body
+        return response()->json([
+            'domain' => $domain,
+            'body'   => $body,
+        ]);
+    }
 }
