@@ -112,8 +112,8 @@ class LicenseVerificationService
             $license->update([
                 'activated_domain' => $domain,
                 'activated_ip' => $ip,
-                'activated_email' => $email,
-                'activated_user' => $username,
+                // 'activated_email' => $email,
+                // 'activated_user' => $username,
                 'is_activated' => true,
                 'activated_at' => now(),
             ]);
