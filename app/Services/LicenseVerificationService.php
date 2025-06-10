@@ -59,7 +59,6 @@ class LicenseVerificationService
         $license = License::with(['payment', 'product','user'])
             ->where([
                 ['raw_key', '=', $licenseKey],
-                ['type', '=', 'core'],
                 ['status', '=', 'active'],
                 ['is_activated', '=', false],
             ])
