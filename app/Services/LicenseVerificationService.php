@@ -80,10 +80,10 @@ class LicenseVerificationService
             $providedEmail = strtolower(trim($email));
             $userEmail = strtolower(trim($license->user->email));
             
-            if ($license->user->username !== $username || $userEmail !== $providedEmail) {
+            if ($license->user->name !== $username || $userEmail !== $providedEmail) {
                 Log::warning('User credentials mismatch', [
                     'license' => $licenseKey,
-                    'expected_username' => $license->user->username,
+                    'expected_username' => $license->user->name,
                     'provided_username' => $username,
                     'expected_email' => $license->user->email,
                     'provided_email' => $email,
