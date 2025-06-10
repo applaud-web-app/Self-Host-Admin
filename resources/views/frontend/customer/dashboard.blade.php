@@ -185,7 +185,7 @@
                         <i class="far fa-copy me-1"></i> Copy Key
                     </button>
                     <div class="license-key" id="licenseKey">
-                        {{$licenseArray['key']}}
+                        {{$licenseString}}
                     </div>
                 </div>
 
@@ -196,7 +196,7 @@
                             <h4>Download the Installation Package</h4>
                             <p>Get the latest version of Aplu for self-hosting from your customer dashboard.</p>
                             <button class="download-btn">
-                                <i class="fas fa-download" data-uuid="{{$licenseArray['product']['uuid']}}"></i> Download {{$licenseArray['product']['name']}}
+                                <i class="fas fa-download" data-uuid="{{$product->uuid}}"></i> Download {{$product->name}}
                             </button>
                         </div>
                     </div>

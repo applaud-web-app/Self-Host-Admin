@@ -10,7 +10,12 @@ class License extends Model
         'user_id',
         'product_id',
         'payment_id',
-        'key',
+        'raw_key',
+        'key_salt',
+        'key_hash',
+        'activated_domain',
+        'activated_ip',
+        'is_activated',
         'status',
         'issued_at',
     ];

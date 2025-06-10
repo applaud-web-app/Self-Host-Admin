@@ -17,6 +17,7 @@ use App\Models\License;
 use Spatie\Permission\Models\Role;
 use Illuminate\Validation\Rule;
 use Razorpay\Api\Api;       
+use Illuminate\Support\Facades\Crypt;
 
 class AuthController extends Controller
 {
@@ -275,15 +276,21 @@ class AuthController extends Controller
                 'status'              => $razorpayPayment->status === "captured" ? "paid" : $razorpayPayment->status,  // should be “captured”
             ]);
 
+            $raw    = Str::upper(Str::random(32));
+            $salt   = Str::random(16);
+            $pepper = config('app.license_pepper');
+
+            // Argon2ID hash of pepper|salt|rawKey
+            $hashInput = "{$pepper}|{$salt}|{$raw}";
+            $keyHash   = password_hash($hashInput, PASSWORD_ARGON2ID);
+
             License::create([
                 'user_id'    => $user->id,
                 'product_id' => $product->id,
                 'payment_id' => $paymentModel->id,
-                'key'        => 'APLU-' .
-                               strtoupper(Str::random(4)) . '-' .
-                               strtoupper(Str::random(4)) . '-' .
-                               strtoupper(Str::random(4)) . '-' .
-                               strtoupper(Str::random(4)),
+                'raw_key'    => $raw,
+                'key_salt'   => $salt,
+                'key_hash'   => $keyHash,
                 'status'     => 'active',
                 'issued_at'  => now()
             ]);
