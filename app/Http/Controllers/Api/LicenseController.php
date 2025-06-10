@@ -255,11 +255,11 @@ class LicenseController extends Controller
             $domain = $this->verificationService->getRequestDomain($request);
             $ip = $request->ip();
 
-            $license = $this->verificationService->findAndValidateLicense($data['license_key'], $domain, $ip);
+            $license = $this->verificationService->findAndValidateLicense($data['license_key'], $domain, $ip, $data['email'], $data['username']);
 
             $this->verificationService->verifyLicenseCredentials($license, $data['license_key']);
 
-            $this->verificationService->activateLicense($license, $domain, $ip, $data['email'], $data['username']);
+            $this->verificationService->activateLicense($license, $domain, $ip);
 
             return $this->responseService->successResponse($license);
 

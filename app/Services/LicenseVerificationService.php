@@ -38,7 +38,7 @@ class LicenseVerificationService
         return $domain ?: 'unknown';
     }
 
-    public function findAndValidateLicense(string $licenseKey, string $domain, string $ip): License
+    public function findAndValidateLicense(string $licenseKey, string $domain, string $ip, string $email, string $username): License
     {
         // 1. Check for already activated license
         $alreadyActivated = License::where('raw_key', $licenseKey)
@@ -122,19 +122,12 @@ class LicenseVerificationService
         License $license,
         string $domain,
         string $ip,
-        string $email,
-        string $username
     ): void {
-        // Lowercase email for consistency
-        $email = strtolower($email);
-
         // Use transaction for safety
-        \DB::transaction(function () use ($license, $domain, $ip, $email, $username) {
+        \DB::transaction(function () use ($license, $domain, $ip) {
             $license->update([
                 'activated_domain' => $domain,
                 'activated_ip' => $ip,
-                // 'activated_email' => $email,
-                // 'activated_user' => $username,
                 'is_activated' => true,
                 'activated_at' => now(),
             ]);
