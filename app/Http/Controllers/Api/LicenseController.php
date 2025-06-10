@@ -9,11 +9,6 @@ class LicenseController extends Controller
 {
     public function verify(Request $request)
     {
-        // Allow CORS
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Headers: Content-Type, Authorization');
-        header('Access-Control-Allow-Methods: POST, OPTIONS');
-
         if ($request->isMethod('options')) {
             return response('', 200);
         }
