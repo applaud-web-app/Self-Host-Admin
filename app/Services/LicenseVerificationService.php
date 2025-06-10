@@ -53,7 +53,7 @@ class LicenseVerificationService
                 'activated_domain' => $alreadyActivated->activated_domain,
             ]);
             throw new Exception(
-                'This license key has already been used and is locked to domain: ' . $alreadyActivated->activated_domain
+                'This license key has already been used.'
             );
         }
 
