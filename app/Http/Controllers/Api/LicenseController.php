@@ -9,19 +9,13 @@ class LicenseController extends Controller
 {
     public function verify(Request $request)
     {
-        if ($request->isMethod('options')) {
-            return response('', 200);
-        }
-
         $data = $request->validate([
             'license_key' => 'required|string',
         ]);
 
-        // Get domain from browser-originated request
         $origin  = $request->headers->get('origin');
         $referer = $request->headers->get('referer');
         $domain = null;
-
         if ($origin) {
             $domain = parse_url($origin, PHP_URL_HOST);
         } elseif ($referer) {
@@ -53,21 +47,18 @@ class LicenseController extends Controller
                 'message' => 'This license is not for a core product.'
             ], 403);
         }
-        // First activation: save domain/ip
         if (!$license->activated_domain && $domain !== 'unknown') {
             $license->update([
                 'activated_domain' => $domain,
                 'activated_ip'     => $ip,
             ]);
         }
-        // Prevent activation on a different domain
         if ($license->activated_domain && $license->activated_domain !== $domain) {
             return response()->json([
                 'valid'   => false,
                 'message' => 'License already activated on another domain.',
             ], 403);
         }
-        // All good!
         return response()->json([
             'valid'       => true,
             'license_key' => $license->key,
