@@ -1,73 +1,78 @@
 <?php
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\License;
+
 class LicenseController extends Controller
 {
-    /**
-     * POST /api/license/verify
-     */
     public function verify(Request $request)
     {
-        // 1) Only require the key; ignore any user-supplied domain/ip in the body
+        // Allow CORS
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Headers: Content-Type, Authorization');
+        header('Access-Control-Allow-Methods: POST, OPTIONS');
+
+        if ($request->isMethod('options')) {
+            return response('', 200);
+        }
+
         $data = $request->validate([
             'license_key' => 'required|string',
         ]);
 
-        // 2) Pull the real requester info from the HTTP layer:
+        // Get domain from browser-originated request
+        $origin  = $request->headers->get('origin');
         $referer = $request->headers->get('referer');
-        $domain = parse_url($referer, PHP_URL_HOST) ?? $request->headers->get('origin');
-        $ip     = $request->ip();
+        $domain = null;
 
-        return [
-            'licence_key'=> $request->license_key,
-            'domain'=> $domain,
-            'ip'=> $ip,
-        ];
-        
-        // 3) Find the license (with its payment & product)
+        if ($origin) {
+            $domain = parse_url($origin, PHP_URL_HOST);
+        } elseif ($referer) {
+            $domain = parse_url($referer, PHP_URL_HOST);
+        }
+        $domain = $domain ?: 'unknown';
+
+        $ip = $request->ip();
+
         $license = License::with(['payment', 'product'])
-                          ->where('key', $data['license_key'])
-                          ->first();
-        if (! $license) {
+            ->where('key', $data['license_key'])
+            ->first();
+
+        if (!$license) {
             return response()->json([
                 'valid'   => false,
                 'message' => 'License not found.'
             ], 404);
         }
-        // 4) Check that the license has been issued/activated/paid
-        if ($license->status !== 'active'
-            || ! $license->payment
-            || $license->payment->status !== 'paid'
-        ) {
+        if ($license->status !== 'active' || !$license->payment || $license->payment->status !== 'paid') {
             return response()->json([
                 'valid'   => false,
                 'message' => 'Payment or license status invalid.'
             ], 403);
         }
-        // 5) (Optional) enforce “core product first”
         if ($license->product->type !== 'core') {
             return response()->json([
                 'valid'   => false,
                 'message' => 'This license is not for a core product.'
             ], 403);
         }
-        // 6) (Optional) record the very first activation domain/ip
-        if (! $license->activated_domain) {
+        // First activation: save domain/ip
+        if (!$license->activated_domain && $domain !== 'unknown') {
             $license->update([
                 'activated_domain' => $domain,
                 'activated_ip'     => $ip,
             ]);
         }
-        // 7) (Optional) prevent activation on a different domain later
-        if ($license->activated_domain !== $domain) {
+        // Prevent activation on a different domain
+        if ($license->activated_domain && $license->activated_domain !== $domain) {
             return response()->json([
                 'valid'   => false,
                 'message' => 'License already activated on another domain.',
             ], 403);
         }
-        // 8) All good!
+        // All good!
         return response()->json([
             'valid'       => true,
             'license_key' => $license->key,
