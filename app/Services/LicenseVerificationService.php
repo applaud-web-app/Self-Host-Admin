@@ -56,7 +56,7 @@ class LicenseVerificationService
         }
 
         // 2. Find eligible license
-        $license = License::with(['payment', 'product'])
+        $license = License::with(['payment', 'product','user'])
             ->where([
                 ['raw_key', '=', $licenseKey],
                 ['type', '=', 'core'],
@@ -67,6 +67,28 @@ class LicenseVerificationService
 
         if (! $license) {
             throw new ModelNotFoundException();
+        }
+
+        // 3. Validate user credentials if user_id exists
+        if ($license->user_id) {
+            if (!$license->user) {
+                throw new LicenseVerificationException('Associated user account not found.');
+            }
+
+            // Normalize email comparison
+            $providedEmail = strtolower(trim($email));
+            $userEmail = strtolower(trim($license->user->email));
+            
+            if ($license->user->username !== $username || $userEmail !== $providedEmail) {
+                Log::warning('User credentials mismatch', [
+                    'license' => $licenseKey,
+                    'expected_username' => $license->user->username,
+                    'provided_username' => $username,
+                    'expected_email' => $license->user->email,
+                    'provided_email' => $email,
+                ]);
+                throw new LicenseVerificationException('License credentials do not match the associated user account.');
+            }
         }
 
         // 3. Validate payment status
