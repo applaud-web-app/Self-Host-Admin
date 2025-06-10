@@ -16,7 +16,8 @@ class LicenseController extends Controller
         ]);
 
         // 2) Pull the real requester info from the HTTP layer:
-        $domain = $request->getHost();  // equivalent to Host header
+        $referer = $request->headers->get('referer');
+        $domain = parse_url($referer, PHP_URL_HOST) ?? $request->headers->get('origin');
         $ip     = $request->ip();
 
         return [
@@ -24,6 +25,7 @@ class LicenseController extends Controller
             'domain'=> $domain,
             'ip'=> $ip,
         ];
+        
         // 3) Find the license (with its payment & product)
         $license = License::with(['payment', 'product'])
                           ->where('key', $data['license_key'])
