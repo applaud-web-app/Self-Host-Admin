@@ -14,10 +14,12 @@ class LicenseController extends Controller
         $data = $request->validate([
             'license_key' => 'required|string',
         ]);
-        
+
         // 2) Pull the real requester info from the HTTP layer:
         $domain = $request->getHost();  // equivalent to Host header
         $ip     = $request->ip();
+
+        dd($request->all(),$domain,$ip);
         // 3) Find the license (with its payment & product)
         $license = License::with(['payment', 'product'])
                           ->where('key', $data['license_key'])
