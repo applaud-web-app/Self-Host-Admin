@@ -19,7 +19,11 @@ class LicenseController extends Controller
         $domain = $request->getHost();  // equivalent to Host header
         $ip     = $request->ip();
 
-        dd($request->all(),$domain,$ip);
+        return [
+            'licence_key'=> $request->license_key,
+            'domain'=> $domain,
+            'ip'=> $ip,
+        ];
         // 3) Find the license (with its payment & product)
         $license = License::with(['payment', 'product'])
                           ->where('key', $data['license_key'])
