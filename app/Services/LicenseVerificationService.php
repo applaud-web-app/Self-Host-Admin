@@ -6,8 +6,8 @@ use App\Models\License;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Exceptions\LicenseAlreadyActivatedException;
-use App\Exceptions\LicenseVerificationException;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Exception;
 
 class LicenseVerificationService
 {
@@ -23,7 +23,9 @@ class LicenseVerificationService
         $key = 'verify:' . $ip . ':' . $licenseKey;
         if (RateLimiter::tooManyAttempts($key, self::MAX_ATTEMPTS)) {
             Log::warning('Rate limit exceeded', ['ip' => $ip, 'licenseKey' => $licenseKey]);
-            throw new \Illuminate\Http\Exceptions\ThrottleRequestsException();
+            throw new HttpResponseException(response()->json([
+                'message' => 'Too many attempts. Try again later.'
+            ], 429));
         }
         RateLimiter::hit($key, self::DECAY_SECONDS);
     }
@@ -50,7 +52,7 @@ class LicenseVerificationService
                 'domain' => $domain,
                 'activated_domain' => $alreadyActivated->activated_domain,
             ]);
-            throw new LicenseAlreadyActivatedException(
+            throw new Exception(
                 'This license key has already been used and is locked to domain: ' . $alreadyActivated->activated_domain
             );
         }
@@ -65,13 +67,13 @@ class LicenseVerificationService
             ->first();
 
         if (! $license) {
-            throw new ModelNotFoundException();
+            throw new ModelNotFoundException('License not found or not eligible for activation.');
         }
 
         // 3. Validate user credentials if user_id exists
         if ($license->user_id) {
             if (!$license->user) {
-                throw new LicenseVerificationException('Associated user account not found.');
+                throw new Exception('Associated user account not found.', 403);
             }
 
             // Normalize email comparison
@@ -86,7 +88,7 @@ class LicenseVerificationService
                     'expected_email' => $license->user->email,
                     'provided_email' => $email,
                 ]);
-                throw new LicenseVerificationException('License credentials do not match the associated user account.');
+                throw new Exception('License credentials do not match the associated user account.', 403);
             }
         }
 
@@ -95,7 +97,7 @@ class LicenseVerificationService
             Log::info('License/payment invalid', [
                 'license' => $license->raw_key, 'domain' => $domain
             ]);
-            throw new LicenseVerificationException('Payment or license status invalid.');
+            throw new Exception('Payment or license status invalid.', 403);
         }
 
         // 4. Validate product type
@@ -103,7 +105,7 @@ class LicenseVerificationService
             Log::info('Product type not core', [
                 'license' => $license->raw_key, 'domain' => $domain
             ]);
-            throw new LicenseVerificationException('This license is not applicable here.');
+            throw new Exception('This license is not applicable here.', 403);
         }
 
         return $license;
@@ -114,7 +116,7 @@ class LicenseVerificationService
         $pepper = config('app.license_pepper');
         $check = "{$pepper}|{$license->key_salt}|{$licenseKey}";
         if (!password_verify($check, $license->key_hash)) {
-            throw new LicenseVerificationException('Invalid license credentials.');
+           throw new Exception('Invalid license credentials.', 403);
         }
     }
 

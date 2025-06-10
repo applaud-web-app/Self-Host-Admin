@@ -278,12 +278,12 @@ class LicenseController extends Controller
                 'Too many attempts. Try again later.',
                 429
             );
-        } catch (\App\Exceptions\LicenseAlreadyActivatedException $e) {
+        } catch (Exception $e) {
             return $this->responseService->errorResponse(
                 $e->getMessage(),
                 403
             );
-        } catch (\App\Exceptions\LicenseVerificationException $e) {
+        } catch (Exception $e) {
             return $this->responseService->errorResponse(
                 $e->getMessage(),
                 403
