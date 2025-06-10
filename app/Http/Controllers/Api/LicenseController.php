@@ -14,6 +14,7 @@ class LicenseController extends Controller
         $data = $request->validate([
             'license_key' => 'required|string',
         ]);
+        
         // 2) Pull the real requester info from the HTTP layer:
         $domain = $request->getHost();  // equivalent to Host header
         $ip     = $request->ip();
