@@ -26,10 +26,13 @@ class LicenseController extends Controller
             'license_key' => 'required|string|min:12|max:60', // adjust as needed
         ]);
 
-        // Detect domain (browser only)
+
+
+        // Get domain from Origin or Referer
         $origin  = $request->headers->get('origin');
         $referer = $request->headers->get('referer');
         $domain = null;
+
         if ($origin) {
             $domain = parse_url($origin, PHP_URL_HOST);
         } elseif ($referer) {
@@ -38,16 +41,25 @@ class LicenseController extends Controller
         $domain = $domain ?: 'unknown';
 
         // Allow only whitelisted domains in production (configurable)
-        $allowedDomains = ['yourfrontend.com', 'yourclientsite.com'];
-        if (app()->environment('production') && !in_array($domain, $allowedDomains)) {
-            Log::warning("Verification from unauthorized domain: $domain");
-            return response()->json([
-                'valid' => false,
-                'message' => 'Unauthorized domain.'
-            ], 403);
-        }
+        // $allowedDomains = ['yourfrontend.com', 'yourclientsite.com'];
+        // if (app()->environment('production') && !in_array($domain, $allowedDomains)) {
+        //     Log::warning("Verification from unauthorized domain: $domain");
+        //     return response()->json([
+        //         'valid' => false,
+        //         'message' => 'Unauthorized domain.'
+        //     ], 403);
+        // }
 
         $ip = $request->ip();
+
+        // Get the whole request body for debug
+        $body = $request->all();
+
+        // Return only domain and the request body
+        return response()->json([
+            'domain' => $domain,
+            'body'   => $body,
+        ]);
 
         $license = License::with(['payment', 'product'])
             ->where('key', $data['license_key'])
