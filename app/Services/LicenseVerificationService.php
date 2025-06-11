@@ -88,7 +88,7 @@ class LicenseVerificationService
                     'expected_email' => $license->user->email,
                     'provided_email' => $email,
                 ]);
-                throw new Exception('License credentials do not match the associated user account.', 403);
+                throw new Exception('Invalid License credentials.', 403);
             }
         }
 
