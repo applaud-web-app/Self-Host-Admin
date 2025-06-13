@@ -18,8 +18,7 @@ class CrossPlatformController extends Controller
 
         try {
             // 1) Find the core license
-            $license = License::where('raw_key', $data['license_key'])->where('activated_domain', $data['domain'])
-            ->first();
+            $license = License::where('raw_key', $data['license_key'])->where('activated_domain', $data['domain'])->first();
 
             if (! $license) {
                 return response()->json([
