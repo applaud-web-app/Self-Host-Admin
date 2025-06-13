@@ -13,12 +13,12 @@ class CrossPlatformController extends Controller
     {
         $data = $request->validate([
             'license_key' => 'required|string',
-            'domain'      => 'required|string|exists:domains,name',
+            'domain'      => 'required|string',
         ]);
 
         try {
             // 1) Find the core license
-            $license = License::where('raw_key', $data['license_key'])
+            $license = License::where('raw_key', $data['license_key'])->where('activated_domain', $data['domain'])
             ->orWhere('key_hash', License::hashKey($data['license_key']))
             ->first();
 
