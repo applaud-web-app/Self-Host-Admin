@@ -128,7 +128,7 @@ class CrossPlatformController extends Controller
                     'version'       => $product?->version,
                     'description'   => $product?->description,
                     'product_price' => "₹".$product?->price,
-                    'purchase_date' =>  $payment->created_at->timezone('Asia/Kolkata')->format('d-M-Y h:i A'),
+                    'purchase_date' =>  $payment->created_at->timezone('Asia/Kolkata')->format('d-M-Y'),
                 ],
             ], 200);
 
