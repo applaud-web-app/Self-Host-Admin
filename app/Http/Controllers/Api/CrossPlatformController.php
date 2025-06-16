@@ -38,10 +38,10 @@ class CrossPlatformController extends Controller
 
             $purchasedIds = $license->user->licenses->pluck('product_id')->unique();
 
-            /* 3 ─── All add-on products (cached 5 min, query 2 on miss) ----- */
+            /* 3 ─── All add-on products (cached 1 hr, query 2 on miss) ----- */
             $allAddons = Cache::remember(
-                'all_addon_productsss',
-                now()->addMinutes(5),
+                'all_addon_products',
+                now()->addHour(),                              
                 fn () => Product::select('id', 'name', 'description', 'icon', 'version', 'price')
                                 ->where('type', 'addon')
                                 ->get()
