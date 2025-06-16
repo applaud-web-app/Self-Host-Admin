@@ -4,49 +4,69 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use App\Models\License;
 use App\Models\Product;
 
 class CrossPlatformController extends Controller
 {
-    public function addonList(Request $request)
+   public function addonList(Request $request)
     {
+        // Validation errors will already return 422 JSON responses
         $data = $request->validate([
-            'license_key' => 'required|string',
-            'domain' => 'required|string',
+            'license_key' => ['required', 'string'],
+            'domain'      => ['required', 'string'],
         ]);
 
         try {
-            // 1) Find the core license
-            $license = License::where('raw_key', $data['license_key'])->where('activated_domain', $data['domain'])->first();
+            /* ─────────────────── 1. core licence + eager-loaded data (query 1) */
+            $license = License::with([
+                    'user.licenses' => function ($q) {
+                        $q->select('id', 'user_id', 'product_id')
+                          ->whereHas('product', fn ($q) => $q->where('type', 'addon'))
+                          ->with('product:id,type');
+                    },
+                ])
+                ->select([
+                    'id', 'user_id', 'product_id', 'status',
+                    'activated_domain', 'activated_ip', 'issued_at', 'raw_key'
+                ])
+                ->where('raw_key',          $data['license_key'])
+                ->where('activated_domain', $data['domain'])
+                ->first();
 
             if (! $license) {
-                return response()->json([
-                    'error' => 'Invalid license key.'
-                ], 404);
+                return response()->json(['error' => 'Invalid license key.'], 404);
             }
 
-            // 3) Grab all "addon" products
-            $allAddons = Product::where('type', 'addon')->get();
-
-            // 4) Find which addons this user already owns
+            /* ─────────────────── 2. purchased add-ons in memory */
             $purchasedIds = $license->user
-            ->licenses()
-            ->whereHas('product', fn($q) => $q->where('type', 'addon'))
-            ->pluck('product_id')
-            ->toArray();
+                ->licenses
+                ->pluck('product_id')
+                ->unique();
 
-            // 5) Build the response payload
-            $addonList = $allAddons->map(function($addon) use ($purchasedIds) {
-                return [
+            /* ─────────────────── 3. all add-on products (cached, query 2 on miss) */
+            $allAddons = Cache::remember(
+                'all_addon_products',                          // cache key
+                now()->addHour(),                              // TTL
+                fn () => Product::select('id','name','slug','version','price')
+                                ->where('type', 'addon')
+                                ->get()
+            );
+
+            /* ─────────────────── 4. construct payload */
+            $addonList = $allAddons->map(
+                fn ($addon) => [
                     'id'      => $addon->id,
                     'name'    => $addon->name,
                     'slug'    => $addon->slug,
                     'version' => $addon->version,
                     'price'   => $addon->price,
-                    'status'  => in_array($addon->id, $purchasedIds) ? 'purchased' : 'available',
-                ];
-            });
+                    'status'  => $purchasedIds->contains($addon->id) ? 'purchased'
+                                                                      : 'available',
+                ]
+            );
 
             return response()->json([
                 'core_license' => [
@@ -60,11 +80,18 @@ class CrossPlatformController extends Controller
                 ],
                 'addons' => $addonList,
             ], 200);
-        } catch (Exception $e) {
+
+        } catch (\Throwable $e) {
+            /* ─────────────────── 5. graceful degradation ────────────────── */
+            Log::error('addonList API failed', [
+                'input'  => $data,
+                'error'  => $e->getMessage(),
+                'trace'  => $e->getTraceAsString(),
+            ]);
+
             return response()->json([
-                'status' => 'false',
-                'error' => $e->getMessage(),
-            ], 200);
+                'error'   => 'Something went wrong. Please try again later.',
+            ], 500);
         }
     }
 }
