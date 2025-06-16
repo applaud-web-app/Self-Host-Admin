@@ -58,26 +58,16 @@ class CrossPlatformController extends Controller
             /* ─────────────────── 4. construct payload */
             $addonList = $allAddons->map(
                 fn ($addon) => [
-                    'id'      => $addon->id,
                     'name'    => $addon->name,
-                    'slug'    => $addon->slug,
+                    'description' => $addon->description,
+                    'icon'    => asset('storage/icons/'.$addon->icon),
                     'version' => $addon->version,
-                    'price'   => $addon->price,
-                    'status'  => $purchasedIds->contains($addon->id) ? 'purchased'
-                                                                      : 'available',
+                    'price'   => "₹".$addon->price,
+                    'status'  => $purchasedIds->contains($addon->id) ? 'purchased' : 'available',
                 ]
             );
 
             return response()->json([
-                'core_license' => [
-                    'id'               => $license->id,
-                    'user_id'          => $license->user_id,
-                    'product_id'       => $license->product_id,
-                    'status'           => $license->status,
-                    'activated_domain' => $license->activated_domain,
-                    'activated_ip'     => $license->activated_ip,
-                    'issued_at'        => $license->issued_at,
-                ],
                 'addons' => $addonList,
             ], 200);
 
