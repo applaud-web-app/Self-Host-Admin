@@ -122,11 +122,11 @@ class CrossPlatformController extends Controller
                 'data'   => [
                     'order_id'      => $payment->razorpay_order_id,
                     'payment_id'    => $payment->razorpay_payment_id,
-                    'amount'        => $payment->amount,
+                    'paid_amount'   => "₹".$payment->amount,
                     'status'        => $payment->status,
                     'name'          => $product?->name,
-                    'price'         => $product?->price,
-                    'purchase_date' => $payment->created_at,
+                    'product_price' => "₹".$product?->price,
+                    'purchase_date' =>  $payment->created_at->timezone('Asia/Kolkata')->format('d-M-Y h:i A'),
                 ],
             ], 200);
 
