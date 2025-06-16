@@ -13,7 +13,7 @@ class CrossPlatformController extends Controller
     {
         $data = $request->validate([
             'license_key' => 'required|string',
-            'domain'      => 'required|string',
+            'domain' => 'required|string',
         ]);
 
         try {

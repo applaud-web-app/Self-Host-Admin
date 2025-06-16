@@ -22,7 +22,7 @@
             $isPurchased = $product->payment !== null;
 
             // If purchased, this is the license key (or null if license row doesn't exist yet)
-            $licenseKey = optional($product->license)->key;
+            $licenseKey = optional($product->license)->raw_key;
         @endphp
 
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">

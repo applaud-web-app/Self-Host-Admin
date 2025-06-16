@@ -30,6 +30,6 @@ class Product extends Model
     {
         return $this->hasOne(License::class)
                     ->where('user_id', Auth::id())
-                    ->select('product_id', 'key');
+                    ->select('product_id', 'raw_key');
     }
 }
