@@ -68,6 +68,7 @@ class CrossPlatformController extends Controller
             );
 
             return response()->json([
+                'status'=>'success',
                 'addons' => $addonList,
             ], 200);
 
@@ -80,7 +81,8 @@ class CrossPlatformController extends Controller
             ]);
 
             return response()->json([
-                'error'   => 'Something went wrong. Please try again later.',
+                'status'=>'error',
+                'addons'   => [],
             ], 500);
         }
     }
