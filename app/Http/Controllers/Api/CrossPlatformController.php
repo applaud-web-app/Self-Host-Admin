@@ -50,7 +50,7 @@ class CrossPlatformController extends Controller
             $allAddons = Cache::remember(
                 'all_addon_products',                          // cache key
                 now()->addHour(),                              // TTL
-                fn () => Product::select('id','name','slug','version','price')
+                fn () => Product::select('id','name','description','icon','version','price')
                                 ->where('type', 'addon')
                                 ->get()
             );
@@ -58,11 +58,11 @@ class CrossPlatformController extends Controller
             /* ─────────────────── 4. construct payload */
             $addonList = $allAddons->map(
                 fn ($addon) => [
-                    'name'    => $addon->name,
-                    'description' => $addon->description,
-                    'icon'    => asset('storage/icons/'.$addon->icon),
-                    'version' => $addon->version,
-                    'price'   => "₹".$addon->price,
+                    'name'    => $addon->name ?? "",
+                    'description' => $addon->description ?? "",
+                    'icon'    => asset('storage/icons/'.$addon->icon) ?? "",
+                    'version' => $addon->version ?? "",
+                    'price'   => "₹".$addon->price ?? "₹",
                     'status'  => $purchasedIds->contains($addon->id) ? 'purchased' : 'available',
                 ]
             );
