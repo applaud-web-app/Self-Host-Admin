@@ -96,7 +96,7 @@ class CrossPlatformController extends Controller
             }
 
             /* 3 ─── Latest “core” payment for this user (query 2) ---------- */
-            $payment = Payment::with('product:id,name,price')
+            $payment = Payment::with('product:id,name,price,version,description')
                 ->select(
                     'id', 'product_id',
                     'razorpay_order_id',
@@ -125,6 +125,8 @@ class CrossPlatformController extends Controller
                     'paid_amount'   => "₹".$payment->amount,
                     'status'        => $payment->status,
                     'name'          => $product?->name,
+                    'version'       => $product?->version,
+                    'description'   => $product?->description,
                     'product_price' => "₹".$product?->price,
                     'purchase_date' =>  $payment->created_at->timezone('Asia/Kolkata')->format('d-M-Y h:i A'),
                 ],
