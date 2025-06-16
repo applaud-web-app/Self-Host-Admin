@@ -40,7 +40,7 @@ class CrossPlatformController extends Controller
 
             /* 3 ─── All add-on products (cached 5 min, query 2 on miss) ----- */
             $allAddons = Cache::remember(
-                'all_addon_products',
+                'all_addon_productsss',
                 now()->addMinutes(5),
                 fn () => Product::select('id', 'name', 'description', 'icon', 'version', 'price')
                                 ->where('type', 'addon')
