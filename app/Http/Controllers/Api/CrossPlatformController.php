@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use App\Models\License;
 use App\Models\Product;
+use App\Models\Payment; 
 
 class CrossPlatformController extends Controller
 {
@@ -75,46 +76,47 @@ class CrossPlatformController extends Controller
         }
     }
 
-   public function subscriber(Request $request)
+    public function subscriber(Request $request)
     {
-        /* 1 ─── Validate ------------------------------------------------- */
+        /* 1 ─── Validate -------------------------------------------------- */
         $data = $request->validate([
             'license_key' => ['required', 'string'],
             'domain'      => ['required', 'string'],
         ]);
 
         try {
-            /* 2 ─── One-shot query: licence + its payment + that product ---- */
-            $license = License::select('id', 'payment_id')                 // only what we need
+            /* 2 ─── Verify licence (query 1) ------------------------------ */
+            $license = License::select('id', 'user_id')
                 ->where('raw_key',          $data['license_key'])
                 ->where('activated_domain', $data['domain'])
-                ->with([
-                    'payment' => function ($q) {
-                        $q->select(
-                            'id', 'product_id',                 // joins
-                            'razorpay_order_id',
-                            'razorpay_payment_id',
-                            'amount',
-                            'status',
-                            'created_at'
-                        )
-                        ->with('product:id,name,price');        // nested eager load
-                    },
-                ])
                 ->first();
 
             if (!$license) {
                 return response()->json(['error' => 'Invalid license key.'], 404);
             }
 
-            $payment = $license->payment;
+            /* 3 ─── Latest “core” payment for this user (query 2) ---------- */
+            $payment = Payment::with('product:id,name,price')
+                ->select(
+                    'id', 'product_id',
+                    'razorpay_order_id',
+                    'razorpay_payment_id',
+                    'amount',
+                    'status',
+                    'created_at'
+                )
+                ->where('user_id', $license->user_id)
+                ->whereHas('product', fn ($q) => $q->where('type', 'core'))
+                ->latest()                         // ORDER BY created_at DESC
+                ->first();
+
             if (!$payment) {
-                return response()->json(['error' => 'Payment record not found.'], 404);
+                return response()->json(['error' => 'No core payment found.'], 404);
             }
 
-            $product = $payment->product;                      // will be null-safe via eager load
+            $product = $payment->product;          // eager-loaded, so no extra query
 
-            /* 3 ─── Return only the requested fields ----------------------- */
+            /* 4 ─── Response ------------------------------------------------ */
             return response()->json([
                 'status' => 'success',
                 'data'   => [
