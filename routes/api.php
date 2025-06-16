@@ -9,6 +9,7 @@ Route::post('license/verify', [LicenseController::class, 'verify']);
 
 // ADDONS API
 Route::post('license/addon-list', [CrossPlatformController::class, 'addonList'])->withoutMiddleware('throttle:api');
+Route::post('license/subscriber', [CrossPlatformController::class, 'subscriber'])->withoutMiddleware('throttle:api');
 
 // ACTIVE PACKAGE
 // Route::post('license/debug-domain', [App\Http\Controllers\Api\LicenseController::class, 'debugDomain']);
