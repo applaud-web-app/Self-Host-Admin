@@ -52,10 +52,11 @@ class CrossPlatformController extends Controller
             $addonList = $allAddons->map(fn ($addon) => [
                 'name'        => $addon->name ?? '',
                 'description' => $addon->description ?? '',
-                'icon'        => $addon->icon ? asset('storage/icons/'.$addon->icon) : '',
+                'icon'        => $addon->icon ? asset('storage/icons/'.$addon->icon) : asset('images\17335857.png'),
                 'version'     => $addon->version ?? '',
                 'price'       => '₹'.($addon->price ?? ''),
                 'status'      => $purchasedIds->contains($addon->id) ? 'purchased' : 'available',
+                'purchase_url'  => $purchasedIds->contains($addon->id) ? "https://selfhost.awmtab.in/preview" : "https://selfhost.awmtab.in/purchase",
             ]);
 
             return response()->json([
