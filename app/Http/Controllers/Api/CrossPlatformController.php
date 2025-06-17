@@ -57,6 +57,7 @@ class CrossPlatformController extends Controller
                 'price'       => '₹'.($addon->price ?? ''),
                 'status'      => $purchasedIds->contains($addon->id) ? 'purchased' : 'available',
                 'purchase_url'  => $purchasedIds->contains($addon->id) ? "https://selfhost.awmtab.in/preview" : "https://selfhost.awmtab.in/purchase",
+                'btn_text'  => $purchasedIds->contains($addon->id) ? "Download Now" : "Purchase Now",
             ]);
 
             return response()->json([
