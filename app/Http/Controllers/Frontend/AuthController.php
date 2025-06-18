@@ -133,6 +133,10 @@ class AuthController extends Controller
 
     public function callback(Request $request)
     {
+        $request->merge([
+            'phone' => preg_replace('/\D+/', '', $request->input('phone'))
+        ]);
+
         // 1) Validate incoming data:
         //    We’ve extended validation to include all of the billing fields.
         $request->validate([
