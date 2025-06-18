@@ -32,42 +32,7 @@
         .form-group {
             margin-bottom: 1.5rem;
         }
-        .form-group label {
-            display: block;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            color: #2d3748;
-        }
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            font-size: 1rem;
-            border: 1px solid #cbd5e0;
-            border-radius: 6px;
-            transition: border-color 0.2s ease;
-        }
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #63b3ed;
-        }
-        .btn-primary {
-            display: block;
-            width: 100%;
-            background: #F37254;
-            color: #fff;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            text-align: center;
-        }
-        .btn-primary:hover {
-            background: #e66145;
-        }
+      
         .error-text {
             color: #e53e3e;
             font-size: 0.9rem;
@@ -89,12 +54,7 @@
             font-size: 1.1rem;
         }
 
-        /* Billing section separator */
-        .billing-section {
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid #e2e8f0;
-        }
+     
     </style>
 @endpush
 
@@ -113,274 +73,277 @@
                 {{-- ============================
                      Checkout + Registration Form
                 ============================= --}}
-                <form 
-                    id="checkout-form" 
-                    action="{{ route('checkout.callback') }}" 
-                    method="POST" 
-                    autocomplete="off"
+             <form 
+    id="checkout-form" 
+    action="{{ route('checkout.callback') }}" 
+    method="POST" 
+    autocomplete="off"
+>
+    @csrf
+
+    <div class="row">
+        {{-- Username (Name) --}}
+        <div class="form-group col-lg-6">
+            <label for="name">Username <span class="text-danger">*</span></label>
+            <input 
+                type="text" 
+                name="name" 
+                id="name" 
+                class="form-control"
+                value="{{ old('name') }}" 
+                placeholder="Enter your name" 
+                required
+            >
+            @error('name')
+                <div class="error-text">{{ $message }}</div>
+            @enderror
+        </div>
+
+        {{-- Email Address --}}
+        <div class="form-group col-lg-6">
+            <label for="email">Email <span class="text-danger">*</span></label>
+            <input 
+                type="email"
+                name="email"  
+                id="email"  
+                class="form-control"
+                value="{{ old('email') }}"  
+                placeholder="Enter your email"  
+                required
+            >
+            @error('email')
+                <div class="error-text">{{ $message }}</div>
+            @enderror
+        </div>
+
+        {{-- Country Code dropdown --}}
+        <div class="form-group col-lg-6">
+            <label for="country_code">Country Code <span class="text-danger">*</span></label>
+            <select 
+                name="country_code" 
+                id="country_code" 
+                class="form-control form-select"
+                required
+            >
+                <option value="">Select Country Code</option>
+                <option value="+91" {{ old('country_code') == '+91' ? 'selected' : '' }}>+91 (India)</option>
+                <option value="+1"  {{ old('country_code') == '+1'  ? 'selected' : '' }}>+1 (USA)</option>
+                <option value="+44" {{ old('country_code') == '+44' ? 'selected' : '' }}>+44 (UK)</option>
+                <option value="+61" {{ old('country_code') == '+61' ? 'selected' : '' }}>+61 (Australia)</option>
+                {{-- Add more country codes as needed --}}
+            </select>
+            @error('country_code')
+                <div class="error-text">{{ $message }}</div>
+            @enderror
+        </div>
+
+        {{-- Phone Number --}}
+        <div class="form-group col-lg-6">
+            <label for="phone">Phone Number <span class="text-danger">*</span></label>
+            <input 
+                type="text"  
+                name="phone"  
+                id="phone"  
+                class="form-control"
+                value="{{ old('phone') }}"  
+                placeholder="Enter your phone number"  
+                required
+            >
+            @error('phone')
+                <div class="error-text">{{ $message }}</div>
+            @enderror
+        </div>
+
+        {{-- Password --}}
+        <div class="form-group col-lg-6 password-wrapper">
+            <label for="password">Password <span class="text-danger">*</span></label>
+            <div class="password-wrapper">
+                <input 
+                    class="form-control"
+                    type="password"  
+                    name="password"  
+                    id="password"  
+                    placeholder="Create a strong password"  
+                    required
                 >
-                    @csrf
+                <span class="password-toggle" data-target="password"><i class="far fa-eye"></i></span>
+            </div>
+            @error('password')
+                <div class="error-text">{{ $message }}</div>
+            @enderror
+        </div>
 
-                    <div class="row">
-                        {{-- -------------------
-                             Username (Name)
-                        -------------------- --}}
-                        <div class="form-group col-lg-6">
-                            <label for="name">Username <span class="text-danger">*</span></label>
-                            <input 
-                                type="text" 
-                                name="name" 
-                                id="name" 
-                                value="{{ old('name') }}" 
-                                placeholder="Enter your name" 
-                                required
-                            >
-                            @error('name')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
+        {{-- Confirm Password --}}
+        <div class="form-group col-lg-6 password-wrapper">
+            <label for="password_confirmation">Confirm Password <span class="text-danger">*</span></label>
+            <div class="password-wrapper">
+                <input 
+                    class="form-control"
+                    type="password"  
+                    name="password_confirmation"  
+                    id="password_confirmation"  
+                    placeholder="Re-enter your password"  
+                    required
+                >
+                <span class="password-toggle" data-target="password_confirmation"><i class="far fa-eye"></i></span>
+            </div>
+            @error('password_confirmation')
+                <div class="error-text">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
 
-                        {{-- -------------------
-                             Email Address
-                        -------------------- --}}
-                        <div class="form-group col-lg-6">
-                            <label for="email">Email <span class="text-danger">*</span></label>
-                            <input 
-                                type="email"
-                                name="email"  
-                                id="email"  
-                                value="{{ old('email') }}"  
-                                placeholder="Enter your email"  
-                                required
-                            >
-                            @error('email')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
+    <input type="hidden" name="product_uuid" value="{{ $product->uuid }}" />
 
-                        {{-- -------------------
-                             Country Code dropdown
-                        -------------------- --}}
-                        <div class="form-group col-lg-6">
-                            <label for="country_code">Country Code <span class="text-danger">*</span></label>
-                            <select 
-                                name="country_code" 
-                                id="country_code" 
-                                required
-                            >
-                                <option value="">Select Country Code</option>
-                                <option value="+91" {{ old('country_code') == '+91' ? 'selected' : '' }}>+91 (India)</option>
-                                <option value="+1"  {{ old('country_code') == '+1'  ? 'selected' : '' }}>+1 (USA)</option>
-                                <option value="+44" {{ old('country_code') == '+44' ? 'selected' : '' }}>+44 (UK)</option>
-                                <option value="+61" {{ old('country_code') == '+61' ? 'selected' : '' }}>+61 (Australia)</option>
-                                {{-- Add more country codes as needed --}}
-                            </select>
-                            @error('country_code')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
+    {{-- Hidden Razorpay fields --}}
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
 
-                        {{-- -------------------
-                             Phone Number
-                        -------------------- --}}
-                        <div class="form-group col-lg-6">
-                            <label for="phone">Phone Number <span class="text-danger">*</span></label>
-                            <input 
-                                type="text"  
-                                name="phone"  
-                                id="phone"  
-                                value="{{ old('phone') }}"  
-                                placeholder="Enter your phone number"  
-                                required
-                            >
-                            @error('phone')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
+    {{-- Billing Details Section --}}
+    <div class="billing-section">
+         <hr>
+        <h4>Billing Details</h4>
+        <hr>
+        <div class="row mt-2">
+            {{-- Billing Name --}}
+            <div class="form-group col-lg-6">
+                <label for="billing_name">Billing Name <span class="text-danger">*</span></label>
+                <input 
+                    type="text" 
+                    name="billing_name" 
+                    id="billing_name" 
+                    class="form-control"
+                    value="{{ old('billing_name') }}" 
+                    placeholder="Aplu" 
+                    required
+                >
+                @error('billing_name')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
+            </div>
 
-                        {{-- -------------------
-                             Password
-                        -------------------- --}}
-                        <div class="form-group col-lg-6 password-wrapper">
-                            <label for="password">Password <span class="text-danger">*</span></label>
-                            <div class="password-wrapper">
-                                <input 
-                                    class="form-control"
-                                    type="password"  
-                                    name="password"  
-                                    id="password"  
-                                    placeholder="Create a strong password"  
-                                    required
-                                >
-                                <span class="password-toggle" data-target="password"><i class="far fa-eye"></i></span>
-                            </div>
-                            @error('password')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
+            {{-- State --}}
+            <div class="form-group col-lg-6">
+                <label for="state">State <span class="text-danger">*</span></label>
+                <select 
+                    name="state" 
+                    id="state" 
+                    class="form-control form-select"
+                    required
+                >
+                    <option value="">Select State</option>
+                    <option value="Uttarakhand" {{ old('state') == 'Uttarakhand' ? 'selected' : '' }}>Uttarakhand</option>
+                    <option value="Rajasthan"   {{ old('state') == 'Rajasthan'   ? 'selected' : '' }}>Rajasthan</option>
+                    <option value="Punjab"       {{ old('state') == 'Punjab'       ? 'selected' : '' }}>Punjab</option>
+                </select>
+                @error('state')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
+            </div>
 
-                        {{-- ---------------------------
-                             Confirm Password
-                        ---------------------------- --}}
-                        <div class="form-group col-lg-6 password-wrapper">
-                            <label for="password_confirmation">Confirm Password <span class="text-danger">*</span></label>
-                            <div class="password-wrapper">
-                                <input 
-                                    class="form-control"
-                                    type="password"  
-                                    name="password_confirmation"  
-                                    id="password_confirmation"  
-                                    placeholder="Re-enter your password"  
-                                    required
-                                >
-                                <span class="password-toggle" data-target="password_confirmation"><i class="far fa-eye"></i></span>
-                            </div>
-                            @error('password_confirmation')
-                                <div class="error-text">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-                    <input type="hidden" name="product_uuid" value="{{ $product->uuid }}" />
+            {{-- City --}}
+            <div class="form-group col-lg-6">
+                <label for="city">City <span class="text-danger">*</span></label>
+                <select 
+                    name="city" 
+                    id="city" 
+                    class="form-control form-select"
+                    required
+                >
+                    <option value="">Select City</option>
+                    <option value="Dehradun" {{ old('city') == 'Dehradun' ? 'selected' : '' }}>Dehradun</option>
+                    <option value="Nanital"   {{ old('city') == 'Nanital'   ? 'selected' : '' }}>Nanital</option>
+                    <option value="Auli"      {{ old('city') == 'Auli'      ? 'selected' : '' }}>Auli</option>
+                </select>
+                @error('city')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
+            </div>
 
-                    {{-- =========================
-                        Hidden Razorpay fields
-                    ========================== --}}
-                    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
-                    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
-                    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+            {{-- Pin Code --}}
+            <div class="form-group col-lg-6">
+                <label for="pin_code">Pin Code <span class="text-danger">*</span></label>
+                <input 
+                    type="text" 
+                    name="pin_code" 
+                    id="pin_code" 
+                    class="form-control"
+                    value="{{ old('pin_code') }}" 
+                    placeholder="2XXXXX" 
+                    required
+                >
+                @error('pin_code')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
+            </div>
 
-                    {{-- ---------------------------
-                        Billing Details Section
-                    ---------------------------- --}}
-                    <div class="billing-section">
-                        <h3>Billing Details</h3>
-                        <div class="row mt-2">
-                            {{-- Billing Name --}}
-                            <div class="form-group col-lg-6">
-                                <label for="billing_name">Billing Name <span class="text-danger">*</span></label>
-                                <input 
-                                    type="text" 
-                                    name="billing_name" 
-                                    id="billing_name" 
-                                    value="{{ old('billing_name') }}" 
-                                    placeholder="Aplu" 
-                                    required
-                                >
-                                @error('billing_name')
-                                    <div class="error-text">{{ $message }}</div>
-                                @enderror
-                            </div>
+            {{-- Address --}}
+            <div class="form-group col-lg-12">
+                <label for="address">Address <span class="text-danger">*</span></label>
+                <textarea 
+                    name="address" 
+                    class="form-control" 
+                    id="address" 
+                    cols="30" 
+                    rows="4" 
+                    placeholder="Indi Road" 
+                    required
+                >{{ old('address') }}</textarea>
+                @error('address')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
+            </div>
 
-                            {{-- State --}}
-                            <div class="form-group col-lg-6">
-                                <label for="state">State <span class="text-danger">*</span></label>
-                                <select name="state" id="state" required>
-                                    <option value="">Select State</option>
-                                    <option value="Uttarakhand" {{ old('state') == 'Uttarakhand' ? 'selected' : '' }}>Uttarakhand</option>
-                                    <option value="Rajasthan"   {{ old('state') == 'Rajasthan'   ? 'selected' : '' }}>Rajasthan</option>
-                                    <option value="Punjab"       {{ old('state') == 'Punjab'       ? 'selected' : '' }}>Punjab</option>
-                                </select>
-                                @error('state')
-                                    <div class="error-text">{{ $message }}</div>
-                                @enderror
-                            </div>
+            {{-- Pan Card (optional) --}}
+            <div class="form-group col-lg-6">
+                <label for="pan_card">Pan Card (Optional)</label>
+                <input 
+                    type="text" 
+                    name="pan_card" 
+                    id="pan_card" 
+                    class="form-control"
+                    value="{{ old('pan_card') }}" 
+                    placeholder="Enter Pan Card"
+                >
+                @error('pan_card')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
+            </div>
 
-                            {{-- City --}}
-                            <div class="form-group col-lg-6">
-                                <label for="city">City <span class="text-danger">*</span></label>
-                                <select name="city" id="city" required>
-                                    <option value="">Select City</option>
-                                    <option value="Dehradun" {{ old('city') == 'Dehradun' ? 'selected' : '' }}>Dehradun</option>
-                                    <option value="Nanital"   {{ old('city') == 'Nanital'   ? 'selected' : '' }}>Nanital</option>
-                                    <option value="Auli"      {{ old('city') == 'Auli'      ? 'selected' : '' }}>Auli</option>
-                                </select>
-                                @error('city')
-                                    <div class="error-text">{{ $message }}</div>
-                                @enderror
-                            </div>
+            {{-- GST Number (optional) --}}
+            <div class="form-group col-lg-6">
+                <label for="gst_number">GST Number (Optional)</label>
+                <input 
+                    type="text" 
+                    name="gst_number" 
+                    id="gst_number" 
+                    class="form-control"
+                    value="{{ old('gst_number') }}" 
+                    placeholder="Enter GST Number"
+                >
+                @error('gst_number')
+                    <div class="error-text">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
+    </div>
 
-                            {{-- Pin Code --}}
-                            <div class="form-group col-lg-6">
-                                <label for="pin_code">Pin Code <span class="text-danger">*</span></label>
-                                <input 
-                                    type="text" 
-                                    name="pin_code" 
-                                    id="pin_code" 
-                                    value="{{ old('pin_code') }}" 
-                                    placeholder="2XXXXX" 
-                                    required
-                                >
-                                @error('pin_code')
-                                    <div class="error-text">{{ $message }}</div>
-                                @enderror
-                            </div>
+    {{-- Submit Button --}}
+    <button 
+        type="submit" 
+        id="pay-button" 
+        class="btn btn-primary w-100">
+        <span id="button-text">Pay ₹{{$product->price}}</span>
+        <span id="button-spinner" style="display: none;">
+            &nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="4" opacity="0.25"/>
+                <path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" stroke-width="4"/>
+            </svg>
+        </span>
+    </button>
+</form>
 
-                            {{-- Address --}}
-                            <div class="form-group col-lg-12">
-                                <label for="address">Address <span class="text-danger">*</span></label>
-                                <textarea 
-                                    name="address" 
-                                    class="form-control" 
-                                    id="address" 
-                                    cols="30" 
-                                    rows="4" 
-                                    placeholder="Indi Road" 
-                                    required
-                                >{{ old('address') }}</textarea>
-                                @error('address')
-                                    <div class="error-text">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            {{-- Pan Card (optional) --}}
-                            <div class="form-group col-lg-6">
-                                <label for="pan_card">Pan Card (Optional)</label>
-                                <input 
-                                    type="text" 
-                                    name="pan_card" 
-                                    id="pan_card" 
-                                    value="{{ old('pan_card') }}" 
-                                    placeholder="Enter Pan Card"
-                                >
-                                @error('pan_card')
-                                    <div class="error-text">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            {{-- GST Number (optional) --}}
-                            <div class="form-group col-lg-6">
-                                <label for="gst_number">GST Number (Optional)</label>
-                                <input 
-                                    type="text" 
-                                    name="gst_number" 
-                                    id="gst_number" 
-                                    value="{{ old('gst_number') }}" 
-                                    placeholder="Enter GST Number"
-                                >
-                                @error('gst_number')
-                                    <div class="error-text">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ---------------------------
-                        Submit Button
-                    ---------------------------- --}}
-                    <button 
-                        type="submit" 
-                        id="pay-button" 
-                        class="btn-primary"
-                    >
-                        <span id="button-text">Pay ₹{{$product->price}}</span>
-                        <span id="button-spinner" style="display: none;">
-                            &nbsp;<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="4" opacity="0.25"/>
-                                <path d="M22 12a10 10 0 0 1-10 10" stroke="#fff" stroke-width="4"/>
-                            </svg>
-                        </span>
-                    </button>
-                </form>
             </div>
         </div>
     </section>
