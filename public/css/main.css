@@ -1020,3 +1020,13 @@
   .section-padding {
     padding: 30px 0px;
   }
+
+  .iti { width: 100%; }
+  .iti__search-input {
+    width: 100%; padding: 10px 15px;
+    border: 0; border-bottom: 1px solid #b1b1b1;
+  }
+
+  .iti__country-container{
+    max-height: 3rem;
+  }

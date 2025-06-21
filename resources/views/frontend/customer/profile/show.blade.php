@@ -1,63 +1,20 @@
 @extends('frontend.customer.layout.app')
 
 @push('styles')
+    <!-- intl-tel-input CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.3.2/build/css/intlTelInput.css"/>
     <style>
-        /* Avatar wrapper size */
-        .avatar-wrapper {
-            width: 140px;
-            height: 140px;
-        }
-
-        /* Avatar image styling */
-        .avatar-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border: 4px solid #dee2e6;
-            transition: 0.3s ease-in-out;
-        }
-
-        /* Camera icon overlay styling */
-        .avatar-edit-icon {
-            position: absolute;
-            bottom: 0;
-            width: 36px;
-            height: 36px;
-            line-height: 32px;
-            text-align: center;
-            right: 0;
-            background-color: #ffffff;
-            border: 2px solid #dee2e6;
-            border-radius: 50%;
-
-            cursor: pointer;
-
-            transition: background-color 0.2s;
-        }
-
-        .avatar-edit-icon:hover {
-            background-color: #f8f9fa;
-        }
-
-        .avatar-edit-icon i {
-            color: #495057;
-            font-size: 16px;
-        }
-
-        .error-text {
-            color: #dc3545;
-            font-size: 0.875em;
-        }
-
-        /* Highlight invalid fields */
-        label.error {
-            color: #dc3545;
-            font-size: 0.875em;
-            margin-top: 0.25rem;
-        }
-        input.error, select.error, textarea.error {
-            border-color: #dc3545;
-        }
+        /* Avatar wrapper */
+        .avatar-wrapper { width: 140px; height: 140px; border: 4px solid #dee2e6; border-radius: 50%;}
+        .avatar-img { width: 100%; height: 100%; object-fit: cover;  transition: .3s; }
+        .avatar-edit-icon { position: absolute; bottom: 0; right: 0; width: 36px; height: 36px; line-height: 32px; text-align: center; background: #fff; border: 2px solid #dee2e6; border-radius: 50%; cursor: pointer; transition: .2s; }
+        .avatar-edit-icon:hover { background-color: #f8f9fa; }
+        .error-text { color: #dc3545; font-size: .875em; }
+        label.error, input.error, select.error, textarea.error { color: #dc3545; }
+        .password-toggle  {
+    position:absolute; top:50%; right:12px; transform: translateY(-50%);
+    cursor:pointer; color:#718096; font-size:1.1rem;
+}
     </style>
 @endpush
 
@@ -65,55 +22,42 @@
     <section class="content-body">
         <div class="container-fluid">
             <div class="row">
-                <!-- Left Column: Profile Details + Address -->
+                <!-- Left Column: Profile Details + Address + Phone -->
                 <div class="col-lg-8">
                     <div class="profile-card card h-auto">
                         <div class="card-header">
                             <h4 class="card-title fs-20 mb-0">Profile Details</h4>
                         </div>
                         <div class="card-body">
-                            <form
-                                action="{{ route('customer.profile.update') }}"
-                                method="POST"
-                                enctype="multipart/form-data"
-                                id="profileForm"
-                                novalidate>
+                            <form action="{{ route('customer.profile.update') }}" method="POST" enctype="multipart/form-data" id="profileForm" novalidate>
                                 @csrf
 
-                                {{-- Avatar Upload --}}
+                                <!-- Avatar Upload -->
                                 <div class="row justify-content-center mb-4">
-                                    <div class="col-auto">
-                                        <div class="position-relative avatar-wrapper">
-                                            <!-- Avatar Image -->
-                                            <img
-                                                src="{{ $user->avatar
-                                                    ? asset('storage/' . $user->avatar)
-                                                    : 'https://img.freepik.com/premium-vector/vector-flat-illustration-grayscale-avatar-user-profile-person-icon-gender-neutral-silhouette-profile-picture-suitable-social-media-profiles-icons-screensavers-as-templatex9xa_719432-875.jpg?semt=ais_hybrid&w=740' }}"
-                                                alt="User Avatar"
-                                                id="avatarPreview"
-                                                class="rounded-circle avatar-img">
+                                    <div class="col-auto position-relative avatar-wrapper">
+                                        <img
+                                            src="{{ $user->avatar ? asset('storage/' . $user->avatar) : asset('images/user.png') }}"
+                                            alt="User Avatar"
+                                            id="avatarPreview"
+                                            class="rounded-circle avatar-img">
 
-                                            <!-- Camera Icon Overlay -->
-                                            <label for="avatar" class="avatar-edit-icon">
-                                                <i class="fas fa-camera"></i>
-                                            </label>
-                                            <input
-                                                type="file"
-                                                class="d-none"
-                                                name="avatar"
-                                                id="avatar"
-                                                accept="image/*"
-                                                onchange="previewAvatar(this)">
-                                        </div>
+                                        <label for="avatar" class="avatar-edit-icon">
+                                            <i class="fas fa-camera"></i>
+                                        </label>
+                                        <input
+                                            type="file"
+                                            class="d-none"
+                                            name="avatar"
+                                            id="avatar"
+                                            accept="image/*"
+                                            onchange="previewAvatar(this)">
                                     </div>
                                 </div>
 
                                 <div class="row">
-                                    <!-- Full Name -->
+                                    <!-- Username -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="name" class="form-label">
-                                            Username <span class="text-danger">*</span>
-                                        </label>
+                                        <label for="name" class="form-label">Username <span class="text-danger">*</span></label>
                                         <input
                                             type="text"
                                             class="form-control"
@@ -121,14 +65,11 @@
                                             id="name"
                                             value="{{ old('name', $user->name) }}"
                                             readonly disabled>
-                                        <div class="invalid-feedback">Please enter your username.</div>
                                     </div>
 
-                                    <!-- Email Address -->
+                                    <!-- Email -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="email" class="form-label">
-                                            Email Address <span class="text-danger">*</span>
-                                        </label>
+                                        <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
                                         <input
                                             type="email"
                                             class="form-control"
@@ -136,35 +77,29 @@
                                             id="email"
                                             value="{{ old('email', $user->email) }}"
                                             readonly disabled>
-                                        <div class="invalid-feedback">Please enter a valid email address.</div>
                                     </div>
 
-                                    <!-- Phone Number -->
+                                    <!-- Phone Number with intl-tel-input -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="phone" class="form-label">
-                                            Phone Number
-                                        </label>
-                                        <div class="input-group">
-                                            <span class="input-group-text">{{ old('country_code', $user->country_code) }}</span>
-                                            <input
-                                                type="text"
-                                                class="form-control"
-                                                name="phone"
-                                                id="phone"
-                                                value="{{ old('phone', $user->phone) }}"
-                                                readonly disabled>
-                                        </div>
+                                        <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                        <input type="hidden" name="country_code" id="country_code" value="{{ old('country_code', $user->country_code) }}">
+                                        <input type="hidden" name="country" id="country" value="{{ old('country', $user->country) }}">
+                                        <input
+                                            type="tel"
+                                            class="form-control"
+                                            name="phone"
+                                            id="phone"
+                                            value="{{ old('phone', $user->phone) }}"
+                                            required>
+                                        @error('phone')<div class="error-text">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
 
+                                <hr><h4>Billing Info</h4><hr>
                                 <div class="row">
-                                    <h3 class="my-3"><u>Billing Info</u></h3>
-
-                                    {{-- Billing Name --}}
+                                    <!-- Billing Name -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="billing_name" class="form-label">
-                                            Billing Name <span class="text-danger">*</span>
-                                        </label>
+                                        <label for="billing_name" class="form-label">Billing Name <span class="text-danger">*</span></label>
                                         <input
                                             type="text"
                                             class="form-control"
@@ -172,105 +107,67 @@
                                             id="billing_name"
                                             value="{{ old('billing_name', optional($user->detail)->billing_name) }}"
                                             required>
+                                        @error('billing_name')<div class="error-text">{{ $message }}</div>@enderror
                                     </div>
 
-                                    {{-- State --}}
-                                    <div class="col-lg-6 mb-3">
-                                        <label for="state">State <span class="text-danger">*</span></label>
+                                    <!-- State -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="state" class="form-label">State <span class="text-danger">*</span></label>
                                         <select
                                             name="state"
-                                            class="form-control"
                                             id="state"
-                                            required>
+                                            class="form-control form-select"
+                                            required
+                                            disabled>
                                             <option value="">Select State</option>
-                                            @php
-                                                $selectedState = old('state', optional($user->detail)->state);
-                                            @endphp
-                                            <option
-                                                value="Uttarakhand"
-                                                {{ $selectedState === 'Uttarakhand' ? 'selected' : '' }}>
-                                                Uttarakhand
-                                            </option>
-                                            <option
-                                                value="Rajasthan"
-                                                {{ $selectedState === 'Rajasthan' ? 'selected' : '' }}>
-                                                Rajasthan
-                                            </option>
-                                            <option
-                                                value="Punjab"
-                                                {{ $selectedState === 'Punjab' ? 'selected' : '' }}>
-                                                Punjab
-                                            </option>
                                         </select>
+                                        @error('state')<div class="error-text">{{ $message }}</div>@enderror
                                     </div>
 
-                                    {{-- City --}}
-                                    <div class="col-lg-6 mb-3">
-                                        <label for="city">City <span class="text-danger">*</span></label>
+                                    <!-- City -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="city" class="form-label">City <span class="text-danger">*</span></label>
                                         <select
                                             name="city"
-                                            class="form-control"
                                             id="city"
-                                            required>
+                                            class="form-control form-select"
+                                            required
+                                            disabled>
                                             <option value="">Select City</option>
-                                            @php
-                                                $selectedCity = old('city', optional($user->detail)->city);
-                                            @endphp
-                                            <option
-                                                value="Dehradun"
-                                                {{ $selectedCity === 'Dehradun' ? 'selected' : '' }}>
-                                                Dehradun
-                                            </option>
-                                            <option
-                                                value="Nanital"
-                                                {{ $selectedCity === 'Nanital' ? 'selected' : '' }}>
-                                                Nanital
-                                            </option>
-                                            <option
-                                                value="Auli"
-                                                {{ $selectedCity === 'Auli' ? 'selected' : '' }}>
-                                                Auli
-                                            </option>
                                         </select>
+                                        @error('city')<div class="error-text">{{ $message }}</div>@enderror
                                     </div>
 
-                                    {{-- Pin Code --}}
-                                    <div class="col-lg-6 mb-3">
-                                        <label for="pin_code" class="form-label">
-                                            Pin Code <span class="text-danger">*</span>
-                                        </label>
+                                    <!-- Pin Code -->
+                                    <div class="col-md-6 mb-3">
+                                        <label for="pin_code" class="form-label">Pin Code <span class="text-danger">*</span></label>
                                         <input
                                             type="text"
                                             class="form-control"
                                             name="pin_code"
                                             id="pin_code"
                                             value="{{ old('pin_code', optional($user->detail)->pin_code) }}"
-                                            placeholder="2XXXXX"
                                             required
                                             maxlength="10">
+                                        @error('pin_code')<div class="error-text">{{ $message }}</div>@enderror
                                     </div>
 
-                                    {{-- Address --}}
+                                    <!-- Address -->
                                     <div class="col-lg-12 mb-3">
-                                        <label for="address" class="form-label">
-                                            Address <span class="text-danger">*</span>
-                                        </label>
+                                        <label for="address" class="form-label">Address <span class="text-danger">*</span></label>
                                         <textarea
                                             name="address"
                                             class="form-control"
                                             id="address"
-                                            cols="30"
                                             rows="4"
-                                            placeholder="Indi Road"
                                             required
                                             maxlength="500">{{ old('address', optional($user->detail)->address) }}</textarea>
+                                        @error('address')<div class="error-text">{{ $message }}</div>@enderror
                                     </div>
 
-                                    {{-- PAN Card --}}
+                                    <!-- PAN Card -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="pan_card" class="form-label">
-                                            PAN Card
-                                        </label>
+                                        <label for="pan_card" class="form-label">PAN Card (Optional)</label>
                                         <input
                                             type="text"
                                             class="form-control"
@@ -278,13 +175,12 @@
                                             id="pan_card"
                                             value="{{ old('pan_card', optional($user->detail)->pan_card) }}"
                                             maxlength="20">
+                                        @error('pan_card')<div class="error-text">{{ $message }}</div>@enderror
                                     </div>
 
-                                    {{-- GST Number --}}
+                                    <!-- GST Number -->
                                     <div class="col-md-6 mb-3">
-                                        <label for="gst_number" class="form-label">
-                                            GST Number
-                                        </label>
+                                        <label for="gst_number" class="form-label">GST Number (Optional)</label>
                                         <input
                                             type="text"
                                             class="form-control"
@@ -292,6 +188,7 @@
                                             id="gst_number"
                                             value="{{ old('gst_number', optional($user->detail)->gst_number) }}"
                                             maxlength="20">
+                                        @error('gst_number')<div class="error-text">{{ $message }}</div>@enderror
                                     </div>
                                 </div>
 
@@ -303,80 +200,55 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Change Password -->
+                <!-- Change Password -->
                 <div class="col-lg-4">
                     <div class="profile-card card h-auto">
                         <div class="card-header">
                             <h4 class="card-title fs-20 mb-0">Change Password</h4>
                         </div>
                         <div class="card-body">
-                            <form
-                                action="{{ route('customer.password.update') }}"
-                                method="POST"
-                                id="passwordForm"
-                                novalidate>
+                            <form action="{{ route('customer.password.update') }}" method="POST" id="passwordForm" novalidate>
                                 @csrf
 
                                 <!-- Current Password -->
-                                <div class="mb-3">
-                                    <label for="current_password" class="form-label">
-                                        Current Password <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="input-group">
+                                <div class="mb-3 password-wrapper">
+                                    <label for="current_password" class="form-label">Current Password <span class="text-danger">*</span></label>
+                                    <div class="position-relative">
                                         <input
                                             type="password"
                                             class="form-control"
                                             name="current_password"
                                             id="current_password"
                                             required>
-                                        <span
-                                            class="input-group-text toggle-password"
-                                            data-target="current_password"
-                                            style="cursor: pointer;">
-                                            <i class="fas fa-eye"></i>
-                                        </span>
+                                        <span class="password-toggle" data-target="current_password"><i class="far fa-eye"></i></span>
                                     </div>
                                 </div>
 
                                 <!-- New Password -->
-                                <div class="mb-3">
-                                    <label for="new_password" class="form-label">
-                                        New Password <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="input-group">
+                                <div class="mb-3 password-wrapper">
+                                    <label for="new_password" class="form-label">New Password <span class="text-danger">*</span></label>
+                                    <div class="position-relative">
                                         <input
                                             type="password"
                                             class="form-control"
                                             name="new_password"
                                             id="new_password"
                                             required>
-                                        <span
-                                            class="input-group-text toggle-password"
-                                            data-target="new_password"
-                                            style="cursor: pointer;">
-                                            <i class="fas fa-eye"></i>
-                                        </span>
+                                        <span class="password-toggle" data-target="new_password"><i class="far fa-eye"></i></span>
                                     </div>
                                 </div>
 
                                 <!-- Confirm New Password -->
-                                <div class="mb-3">
-                                    <label for="new_password_confirmation" class="form-label">
-                                        Confirm New Password <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="input-group">
+                                <div class="mb-3 password-wrapper">
+                                    <label for="new_password_confirmation" class="form-label">Confirm New Password <span class="text-danger">*</span></label>
+                                    <div class="position-relative">
                                         <input
                                             type="password"
                                             class="form-control"
                                             name="new_password_confirmation"
                                             id="new_password_confirmation"
                                             required>
-                                        <span
-                                            class="input-group-text toggle-password"
-                                            data-target="new_password_confirmation"
-                                            style="cursor: pointer;">
-                                            <i class="fas fa-eye"></i>
-                                        </span>
+                                        <span class="password-toggle" data-target="new_password_confirmation"><i class="far fa-eye"></i></span>
                                     </div>
                                 </div>
 
@@ -394,163 +266,130 @@
 
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.3.2/build/js/intlTelInput.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/additional-methods.min.js"></script>
     <script>
-        // -----------------------------
-        // 1) Toggle password visibility
-        // -----------------------------
-        document.querySelectorAll('.toggle-password').forEach(toggle => {
+        // Toggle password visibility
+        document.querySelectorAll('.password-toggle').forEach(toggle => {
             toggle.addEventListener('click', function() {
-                const targetId = this.getAttribute('data-target');
-                const input = document.getElementById(targetId);
+                const input = document.getElementById(this.dataset.target);
                 const icon = this.querySelector('i');
                 if (input.type === 'password') {
                     input.type = 'text';
-                    icon.classList.remove('fa-eye');
-                    icon.classList.add('fa-eye-slash');
+                    icon.classList.replace('fa-eye', 'fa-eye-slash');
                 } else {
                     input.type = 'password';
-                    icon.classList.remove('fa-eye-slash');
-                    icon.classList.add('fa-eye');
+                    icon.classList.replace('fa-eye-slash', 'fa-eye');
                 }
             });
         });
 
-        // -----------------------------
-        // 2) Preview selected avatar image
-        // -----------------------------
         function previewAvatar(input) {
             if (input.files && input.files[0]) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('avatarPreview').src = e.target.result;
-                };
+                reader.onload = e => document.getElementById('avatarPreview').src = e.target.result;
                 reader.readAsDataURL(input.files[0]);
             }
         }
 
-        // -----------------------------
-        // 3) jQuery Validation rules
-        // -----------------------------
-        $(document).ready(function() {
-            // --- custom strongPassword rule ---
+        $(document).ready(function(){
+            // intl-tel-input init
+            const phoneInput = document.getElementById('phone');
+            const iti = window.intlTelInput(phoneInput, {
+                initialCountry: 'in',
+                separateDialCode: true,
+                utilsScript: 'https://cdn.jsdelivr.net/npm/intl-tel-input@23.3.2/build/js/utils.js'
+            });
+            const initData = iti.getSelectedCountryData();
+            $('#country_code').val('+' + initData.dialCode);
+            $('#country').val(initData.name);
+
+            // State/City selectors
+            const stateSelect = document.getElementById('state');
+            const citySelect = document.getElementById('city');
+            function resetSelect(el, placeholder) { el.innerHTML = `<option value="">${placeholder}</option>`; el.disabled = true; }
+            function addOption(el, text) { const opt = document.createElement('option'); opt.value = opt.textContent = text; el.appendChild(opt); }
+            function loadStates(country, preState = null, preCity = null) {
+                resetSelect(stateSelect, 'Select State');
+                resetSelect(citySelect, 'Select City');
+                fetch('https://countriesnow.space/api/v0.1/countries/states', {
+                    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ country })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    data.data.states.forEach(s => addOption(stateSelect, s.name));
+                    stateSelect.disabled = false;
+                    if (preState) {
+                        stateSelect.value = preState;
+                        loadCities(country, preState, preCity);
+                    }
+                });
+            }
+            function loadCities(country, state, preCity = null) {
+                resetSelect(citySelect, 'Select City');
+                fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+                    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ country, state })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    data.data.forEach(c => addOption(citySelect, c));
+                    citySelect.disabled = false;
+                    if (preCity) citySelect.value = preCity;
+                });
+            }
+            // Prefill states and cities
+            const oldState = `{{ old('state', optional($user->detail)->state) }}`;
+            const oldCity = `{{ old('city', optional($user->detail)->city) }}`;
+            loadStates(initData.name, oldState, oldCity);
+
+            phoneInput.addEventListener('countrychange', () => {
+                const d = iti.getSelectedCountryData();
+                $('#country_code').val('+' + d.dialCode);
+                $('#country').val(d.name);
+                loadStates(d.name);
+            });
+            stateSelect.addEventListener('change', () => loadCities($('#country').val(), stateSelect.value));
+
+            // jQuery Validation rules
             $.validator.addMethod('strongPassword', function(value, element) {
                 return this.optional(element)
-                    || /[A-Z]/.test(value)         // has uppercase letter
-                    && /[a-z]/.test(value)        // has lowercase letter
-                    && /[0-9]/.test(value)        // has digit
-                    && /[\!\@\#\$\%\^\&\*\(\)\_\+\.\,\;\:]/.test(value) // special char
-                    && value.length >= 8;         // at least 8 characters
+                    || /[A-Z]/.test(value)
+                    && /[a-z]/.test(value)
+                    && /[0-9]/.test(value)
+                    && /[!@#$%^&*()_+.,;:]/.test(value)
+                    && value.length >= 8;
             }, 'Password must be at least 8 characters long and contain uppercase, lowercase, number & special character.');
 
-            // --- Validate Profile Form ---
             $('#profileForm').validate({
-                ignore: [], // do not ignore hidden fields (for file upload)
+                errorElement: 'div', errorClass: 'error-text',
+                ignore: [],
                 rules: {
-                    billing_name: {
-                        required: true,
-                        maxlength: 255
-                    },
-                    state: {
-                        required: true
-                    },
-                    city: {
-                        required: true
-                    },
-                    pin_code: {
-                        required: true,
-                        maxlength: 10
-                    },
-                    address: {
-                        required: true,
-                        maxlength: 500
-                    },
-                    pan_card: {
-                        maxlength: 20
-                    },
-                    gst_number: {
-                        maxlength: 20
-                    }
-                },
-                messages: {
-                    billing_name: {
-                        required: "Billing Name is required.",
-                        maxlength: "Billing Name cannot exceed 255 characters."
-                    },
-                    state: {
-                        required: "Please select a state."
-                    },
-                    city: {
-                        required: "Please select a city."
-                    },
-                    pin_code: {
-                        required: "Pin Code is required.",
-                        maxlength: "Pin Code cannot exceed 10 characters."
-                    },
-                    address: {
-                        required: "Address is required.",
-                        maxlength: "Address cannot exceed 500 characters."
-                    },
-                    pan_card: {
-                        maxlength: "PAN Card cannot exceed 20 characters."
-                    },
-                    gst_number: {
-                        maxlength: "GST Number cannot exceed 20 characters."
-                    }
-                },
-                errorClass: 'error',
-                errorElement: 'label',
-                highlight: function(element) {
-                    $(element).addClass('error');
-                },
-                unhighlight: function(element) {
-                    $(element).removeClass('error');
+                    billing_name: { required: true, maxlength: 255 },
+                    state: { required: true },
+                    city: { required: true },
+                    pin_code: { required: true, digits: true, minlength:4, maxlength:10},
+                    address: { required: true, maxlength:500 },
+                    pan_card: { maxlength:20 },
+                    gst_number:{ maxlength:20 }
                 },
                 submitHandler: function(form) {
-                    // Disable and change the submit button to “Processing…”:
-                    var $btn = $('#submitBtn').prop('disabled', true).text('Processing...');
+                    $('#submitBtn').prop('disabled', true).text('Processing...');
                     form.submit();
                 }
             });
 
-            // --- Validate Password Form ---
             $('#passwordForm').validate({
+                errorElement: 'div', errorClass: 'error-text',
                 rules: {
-                    current_password: {
-                        required: true
-                    },
-                    new_password: {
-                        required: true,
-                        strongPassword: true
-                    },
-                    new_password_confirmation: {
-                        required: true,
-                        equalTo: '#new_password'
-                    }
+                    current_password: { required: true },
+                    new_password: { required: true, strongPassword: true },
+                    new_password_confirmation: { required: true, equalTo: '#new_password' }
                 },
                 messages: {
-                    current_password: {
-                        required: "Please enter your current password."
-                    },
-                    new_password: {
-                        required: "Please enter a new password."
-                    },
-                    new_password_confirmation: {
-                        required: "Please confirm your new password.",
-                        equalTo: "Passwords do not match."
-                    }
-                },
-                errorClass: 'error',
-                errorElement: 'label',
-                highlight: function(element) {
-                    $(element).addClass('error');
-                },
-                unhighlight: function(element) {
-                    $(element).removeClass('error');
+                    new_password_confirmation: { equalTo: 'Passwords do not match.' }
                 },
                 submitHandler: function(form) {
-                    // Disable and change the submit button to “Processing…”:
-                    var $btn = $(form).find('button[type="submit"]');
-                    $btn.prop('disabled', true).text('Processing...');
+                    $(form).find('button[type="submit"]').prop('disabled', true).text('Processing...');
                     form.submit();
                 }
             });
