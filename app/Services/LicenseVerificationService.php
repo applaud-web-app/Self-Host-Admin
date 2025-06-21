@@ -17,6 +17,7 @@ class LicenseVerificationService
     const LICENSE_KEY_MAX_LENGTH = 64;
     const USERNAME_MAX_LENGTH = 60;
     const EMAIL_MAX_LENGTH = 100;
+    const ADDON_PRODUCT_TYPE = 'addon';
 
     public function applyRateLimiting(string $ip, string $licenseKey): void
     {
@@ -140,5 +141,70 @@ class LicenseVerificationService
             'domain' => $domain,
             'ip' => $ip,
         ]);
+    }
+
+
+    public function findAndValidateAddonLicense(string $licenseKey, string $domain, string $ip, string $email, string $username): License
+    {
+        // 1. Check if the addon license has already been activated
+        $alreadyActivated = License::where('raw_key', $licenseKey)
+            ->where('is_activated', true)
+            ->where('product_type', self::ADDON_PRODUCT_TYPE)
+            ->first();
+
+        if ($alreadyActivated) {
+            Log::warning('Addon license already activated', [
+                'license' => $licenseKey,
+                'domain' => $domain,
+                'activated_domain' => $alreadyActivated->activated_domain,
+            ]);
+            throw new Exception('This addon license key has already been used.');
+        }
+
+        // 2. Find the addon license (specifically checking for addon product type)
+        $license = License::with(['payment', 'product', 'user'])
+            ->where([
+                ['raw_key', '=', $licenseKey],
+                ['status', '=', 'active'],
+                ['is_activated', '=', false],
+                ['product_type', '=', self::ADDON_PRODUCT_TYPE],
+            ])
+            ->first();
+
+        if (! $license) {
+            throw new ModelNotFoundException('Addon license not found or not eligible for activation.');
+        }
+
+        // 3. Validate user credentials for addon license
+        if ($license->user_id) {
+            if (!$license->user) {
+                throw new Exception('Associated user account not found for addon.', 403);
+            }
+
+            // Normalize email comparison for addon
+            $providedEmail = strtolower(trim($email));
+            $userEmail = strtolower(trim($license->user->email));
+
+            if ($license->user->name !== $username || $userEmail !== $providedEmail) {
+                Log::warning('User credentials mismatch for addon', [
+                    'license' => $licenseKey,
+                    'expected_username' => $license->user->name,
+                    'provided_username' => $username,
+                    'expected_email' => $license->user->email,
+                    'provided_email' => $email,
+                ]);
+                throw new Exception('Invalid addon license credentials.', 403);
+            }
+        }
+
+        // 4. Validate payment status (similar to core validation)
+        if (! $license->payment || $license->payment->status !== 'paid') {
+            Log::info('Addon license/payment invalid', [
+                'license' => $license->raw_key, 'domain' => $domain
+            ]);
+            throw new Exception('Addon license payment or status invalid.', 403);
+        }
+
+        return $license;
     }
 }
