@@ -38,6 +38,8 @@ Route::prefix('customer')->as('customer.')->middleware('customer')->group( funct
         Route::get('addons', 'showAddons')->name('addons.show');
         Route::get('download-addon/{uuid}', 'downloadAddons')->name('addons.download');
         Route::delete('addon/{uuid}', 'destroy')->name('addon.destroy');
+        Route::get('/purchase', 'purchase')->name('addons.purchase');
+        Route::post('/payment/callback', 'paymentCallback')->name('addons.callback');
     });
 
 });

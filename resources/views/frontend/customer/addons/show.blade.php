@@ -290,43 +290,6 @@ $(document).ready(function() {
         });
     });
 
-    // 7) “Purchase” button logic (unchanged)
-    $(document).on('click', '.btn-purchase', function() {
-        let name = $(this).data('name');
-        $('#purchaseModuleName').val(name);
-        $('#purchaseCode').val('');
-        $('#licenseKey').val('');
-        $('#purchaseModalLabel').text('Activate ' + name);
-        $('#purchaseModal').modal('show');
-    });
-
-    $('#modalPurchaseBtn').click(function() {
-        let name = $(this).data('name');
-        $('#previewModal').modal('hide');
-        setTimeout(function() {
-            $('#purchaseModuleName').val(name);
-            $('#purchaseCode').val('');
-            $('#licenseKey').val('');
-            $('#purchaseModalLabel').text('Activate ' + name);
-            $('#purchaseModal').modal('show');
-        }, 350);
-    });
-
-    $('#purchaseForm').submit(function(e) {
-        e.preventDefault();
-        let module = $('#purchaseModuleName').val();
-        let purchaseCode = $('#purchaseCode').val();
-        let licenseKey = $('#licenseKey').val();
-
-        $('#purchaseModal').modal('hide');
-        setTimeout(function() {
-            Swal.fire(
-                'Submitted!',
-                `<b>${module}</b> activated with:<br>Purchase Code: <code>${purchaseCode}</code><br>License Key: <code>${licenseKey}</code>`,
-                'success'
-            );
-        }, 350);
-    });
 });
 </script>
 @endpush
