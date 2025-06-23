@@ -15,14 +15,16 @@ $gradients = [
     @forelse ($products as $product)
         @php
             // Pick a random gradient for this card's icon background:
-$pair = $gradients[array_rand($gradients)];
-$gradientBg = "linear-gradient(135deg, {$pair[0]}, {$pair[1]})";
+            $pair = $gradients[array_rand($gradients)];
+            $gradientBg = "linear-gradient(135deg, {$pair[0]}, {$pair[1]})";
 
-// Check if this product has a payment record for the current user:
-$isPurchased = $product->payment !== null;
+            // Check if this product has a payment record for the current user:
+            $isPurchased = $product->payment !== null;
 
-// If purchased, this is the license key (or null if license row doesn't exist yet)
+            // If purchased, this is the license key (or null if license row doesn't exist yet)
             $licenseKey = optional($product->license)->raw_key;
+
+            $activatedDomain = optional($product->license)->activated_domain;
         @endphp
 
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
@@ -56,35 +58,41 @@ $isPurchased = $product->payment !== null;
                     </div>
 
                     <div class="addon-actions">
-                        @if ($isPurchased)
-                            <div class="d-flex gap-2">
-                                {{-- Download & Copy License Key --}}
-                                <a href="{{ route('customer.addons.download', ['uuid' => $product->uuid]) }}"
-                                    class="btn btn-outline-success btn-sm w-50" download>
-                                    <i class="fas fa-download me-1"></i> Download
-                                </a>
-
-                                @if ($licenseKey)
-                                    <button type="button"
-                                        class="btn btn-outline-secondary btn-sm w-50 btn-copy-license"
-                                        data-key="{{ $licenseKey }}">
-                                        <i class="fas fa-copy me-1"></i> Copy License Key
-                                    </button>
-                                @endif
-                            </div>
+                        @if (isset($activatedDomain))
+                            <button type="button" class="btn btn-success btn-sm w-100">
+                                <i class="fas fa-check me-1"></i> Activated
+                            </button>
                         @else
-                            {{-- Preview & Purchase --}}
-                            <div class="d-flex gap-2">
-                                @php
-                                    $purchaseUrl = route('customer.addons.purchase');
-                                    $param = ['uuid' => $product->uuid];
-                                    $encryptedUrl = encryptUrl($purchaseUrl, $param);
-                                @endphp
-                                <button type="button" class="btn btn-outline-primary btn-sm w-100 py-2 btn-purchase"
-                                    data-url="{{$encryptedUrl}}">
-                                    <i class="fas fa-shopping-cart me-1"></i> Purchase
-                                </button>
-                            </div>
+                            @if ($isPurchased)
+                                <div class="d-flex gap-2">
+                                    {{-- Download & Copy License Key --}}
+                                    <a href="{{ route('customer.addons.download', ['uuid' => $product->uuid]) }}"
+                                        class="btn btn-outline-success btn-sm w-50" download>
+                                        <i class="fas fa-download me-1"></i> Download
+                                    </a>
+
+                                    @if ($licenseKey)
+                                        <button type="button"
+                                            class="btn btn-outline-secondary btn-sm w-50 btn-copy-license"
+                                            data-key="{{ $licenseKey }}">
+                                            <i class="fas fa-copy me-1"></i> Copy License Key
+                                        </button>
+                                    @endif
+                                </div>
+                            @else
+                                {{-- Preview & Purchase --}}
+                                <div class="d-flex gap-2">
+                                    @php
+                                        $purchaseUrl = route('customer.addons.purchase');
+                                        $param = ['uuid' => $product->uuid];
+                                        $encryptedUrl = encryptUrl($purchaseUrl, $param);
+                                    @endphp
+                                    <button type="button" class="btn btn-outline-primary btn-sm w-100 py-2 btn-purchase"
+                                        data-url="{{$encryptedUrl}}">
+                                        <i class="fas fa-shopping-cart me-1"></i> Purchase
+                                    </button>
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>

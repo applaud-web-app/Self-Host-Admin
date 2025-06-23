@@ -72,13 +72,13 @@ class ProductController extends Controller
             ])
             ->paginate(8)
             ->appends($request->only('search','sort','purchase_status'));
-
         // 6) If AJAX (filter, sort, or page link), return only the partial (cards + pagination)
         if ($request->ajax()) {
             return view('frontend.customer.addons.partials.cards', [
                 'products' => $products,
             ]);
         }
+
 
         // 7) Normal page load: return full “show” view
         return view('frontend.customer.addons.show', [
