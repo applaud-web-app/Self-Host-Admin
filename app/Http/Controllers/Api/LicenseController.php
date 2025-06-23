@@ -94,7 +94,7 @@ class LicenseController extends Controller
         }
     }
 
-     public function addonVerify(Request $request)
+    public function addonVerify(Request $request)
     {
         try {
             // Validate request for addon verification
@@ -118,27 +118,24 @@ class LicenseController extends Controller
 
             // Apply rate limiting based on the license key and IP
             $this->verificationService->applyRateLimiting($request->ip(), $data['license_key']);
-
-            // Get the domain of the request
-            $domain = $this->verificationService->getRequestDomain($request);
             $ip = $request->ip();
-
+            
             // Validate and find the addon license
-            $license = $this->verificationService->findAndValidateAddonLicense(
-                $data['license_key'], $domain, $ip, $data['email'], $data['username']
+            $dataLicense = $this->verificationService->findAndValidateAddonLicense(
+                $data['license_key'], $ip, $data['email'], $data['username']
             );
 
             // Validate the addon license credentials
-            $this->verificationService->verifyLicenseCredentials($license, $data['license_key']);
+            $this->verificationService->verifyLicenseCredentials($dataLicense['license'], $data['license_key']);
 
-            // Activate the addon license
-            $this->verificationService->activateLicense($license, $domain, $ip);
+            // Activate the addon license --
+            $this->verificationService->activateLicense($dataLicense['license'], $dataLicense['domain'], $ip);
 
-            return $this->responseService->successResponse($license);
+            return $this->responseService->successResponse($dataLicense['license']);
 
         } catch (ValidationException $e) {
             return $this->responseService->errorResponse(
-                'Validation error: ' . collect($e->errors())->flatten()->join(' '),
+                'Validation Error: Payload is Required',
                 422
             );
         } catch (ModelNotFoundException $e) {
@@ -157,7 +154,7 @@ class LicenseController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->responseService->errorResponse(
-                'An unexpected error occurred. Please try again later: ' . $e->getMessage(),
+                'Invalid : ' . $e->getMessage(),
                 500
             );
         }

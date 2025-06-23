@@ -14,11 +14,7 @@ class LicenseResponseService
             'message' => 'License activated successfully.',
             'license' => [
                 'key' => $license->raw_key,
-                'domain' => $license->activated_domain,
-                'ip' => $license->activated_ip,
-                'email' => $license->activated_email,
-                'user' => $license->activated_user,
-                'activated_at' => $license->activated_at,
+                'domain' => $license->activated_domain
             ],
             'product' => [
                 'slug' => $license->product->slug ?? null,

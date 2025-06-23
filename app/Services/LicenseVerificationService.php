@@ -132,7 +132,6 @@ class LicenseVerificationService
                 'activated_domain' => $domain,
                 'activated_ip' => $ip,
                 'is_activated' => true,
-                'activated_at' => now(),
             ]);
         });
 
@@ -144,18 +143,19 @@ class LicenseVerificationService
     }
 
 
-    public function findAndValidateAddonLicense(string $licenseKey, string $domain, string $ip, string $email, string $username): License
+    public function findAndValidateAddonLicense(string $licenseKey, string $ip, string $email, string $username): array
     {
         // 1. Check if the addon license has already been activated
-        $alreadyActivated = License::where('raw_key', $licenseKey)
-            ->where('is_activated', true)
-            ->where('product_type', self::ADDON_PRODUCT_TYPE)
+        $alreadyActivated = License::whereHas('product', function($query) {
+                $query->where('type', 'addon');
+            })
+            ->where('raw_key', $licenseKey)
+            ->where('is_activated', 1)
             ->first();
 
         if ($alreadyActivated) {
             Log::warning('Addon license already activated', [
                 'license' => $licenseKey,
-                'domain' => $domain,
                 'activated_domain' => $alreadyActivated->activated_domain,
             ]);
             throw new Exception('This addon license key has already been used.');
@@ -163,11 +163,13 @@ class LicenseVerificationService
 
         // 2. Find the addon license (specifically checking for addon product type)
         $license = License::with(['payment', 'product', 'user'])
+            ->whereHas('product', function($query) {
+                $query->where('type', 'addon');
+            })
             ->where([
                 ['raw_key', '=', $licenseKey],
                 ['status', '=', 'active'],
-                ['is_activated', '=', false],
-                ['product_type', '=', self::ADDON_PRODUCT_TYPE],
+                ['is_activated', '=', 0],
             ])
             ->first();
 
@@ -181,18 +183,13 @@ class LicenseVerificationService
                 throw new Exception('Associated user account not found for addon.', 403);
             }
 
+            $domain = $this->getLatestCoreLicenseDomain($license->user_id);
+
             // Normalize email comparison for addon
             $providedEmail = strtolower(trim($email));
             $userEmail = strtolower(trim($license->user->email));
 
             if ($license->user->name !== $username || $userEmail !== $providedEmail) {
-                Log::warning('User credentials mismatch for addon', [
-                    'license' => $licenseKey,
-                    'expected_username' => $license->user->name,
-                    'provided_username' => $username,
-                    'expected_email' => $license->user->email,
-                    'provided_email' => $email,
-                ]);
                 throw new Exception('Invalid addon license credentials.', 403);
             }
         }
@@ -205,6 +202,23 @@ class LicenseVerificationService
             throw new Exception('Addon license payment or status invalid.', 403);
         }
 
-        return $license;
+        return [
+            'license'=>$license,
+            'domain'=>$domain
+        ];
+    }
+
+    public function getLatestCoreLicenseDomain(int $userId): ?string
+    {
+        $license = License::with(['product'])
+            ->where('user_id', $userId)
+            ->whereHas('product', function($query) {
+                $query->where('type', 'core');
+            })
+            ->where('is_activated', 1)
+            ->latest('created_at')
+            ->first();
+
+        return $license ? $license->activated_domain : null;
     }
 }
