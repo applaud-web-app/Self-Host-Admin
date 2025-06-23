@@ -30,10 +30,14 @@ $gradients = [
         <div class="col-xl-3 col-md-4 col-sm-6 mb-4">
             <div class="card addon-card position-relative h-100">
                 {{-- Badge: “Purchased” (green) or “Available to Purchase” (blue) --}}
-                @if ($isPurchased)
-                    <span class="addon-badge badge bg-success">Purchased</span>
+                @if (isset($activatedDomain))
+                    <span class="addon-badge badge bg-success">Activated</span>
                 @else
-                    <span class="addon-badge badge bg-primary">Available to Purchase</span>
+                    @if ($isPurchased)
+                        <span class="addon-badge badge bg-secondary">Purchased</span>
+                    @else
+                        <span class="addon-badge badge bg-primary">Available to Purchase</span>
+                    @endif
                 @endif
 
                 <div class="card-body text-center d-flex flex-column justify-content-between">
