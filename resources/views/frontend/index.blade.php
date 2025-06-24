@@ -6,7 +6,8 @@
   <!-- Responsive viewport -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Allow indexing -->
-  <meta name="robots" content="index, follow">
+ <meta name="robots" content="noindex, nofollow">
+
 
   <title>Aplu Self Host ― Web Push Notification Service</title>
   <meta name="description"
