@@ -160,4 +160,61 @@ class LicenseController extends Controller
         }
     }
 
+    public function verifyStatus(Request $request)
+    {
+         // Start try-catch to handle potential errors
+        try {
+            // Validate incoming request to ensure necessary fields are provided
+            $request->validate([
+                'domain' => 'required|string|domain',
+                'licenseKey' => 'required|string',
+            ]);
+
+            // Retrieve the domain and license key from the request
+            $domain = $request->input('domain');
+            $licenseKey = $request->input('licenseKey');
+
+            // Look for the license in the database based on the provided license key
+            $license = License::where('raw_key', $licenseKey)->first();
+
+            // Check if the license exists
+            if (!$license) {
+                return response()->json([
+                    'status' => 0,
+                    'message' => 'License key not found.',
+                ], 404);
+            }
+
+            // Check if the license is activated
+            if (!$license->is_activated) {
+                return response()->json([
+                    'status' => 0,
+                    'message' => 'License is not activated.',
+                ], 403);
+            }
+
+            // Check if the license is activated on the correct domain
+            if ($license->activated_domain !== $domain) {
+                return response()->json([
+                    'status' => 0,
+                    'message' => 'License is not activated for this domain.',
+                ], 403);
+            }
+
+            // License is valid and activated
+            return response()->json([
+                'status' => 1,
+                'message' => 'License is valid and activated.',
+            ]);
+
+        } catch (Exception $e) {
+            // Catch any exceptions and return an error response
+            return response()->json([
+                'status' => 2,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
 }
