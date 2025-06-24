@@ -123,20 +123,25 @@
 
             // Convert API endpoint, license key, and customer domain to Unicode arrays
             const unicodeEndpoint = toUnicode(apiEndpoint);
-            const unicodeDomain = toUnicode(customerDomain);
             const unicodeLicenseKey = toUnicode(licenseKey);
+            const unicodeDomain = toUnicode(customerDomain);
 
             const httpsUnicode = toUnicode("https://");
             const userStatusUnicode = toUnicode("/user/status");
 
-            const statusUrl = [...httpsUnicode, ...toUnicode(window.location.hostname), ...userStatusUnicode];
+            // const statusUrl = [
+            //     ...httpsUnicode,
+            //     ...toUnicode(window.location.hostname),
+            //     ...userStatusUnicode 
+            // ];
 
             // Generate the script with the dynamic endpoint and license key
             const script = `(function() {
                 const _0x3a4b = ${JSON.stringify(unicodeEndpoint)};
                 const _0x1d2f = (_0x4e6d) => String.fromCharCode(..._0x4e6d);
                 const _0x1d2f_yek = ${JSON.stringify(unicodeLicenseKey)};
-                const _0x1_sutats = ${JSON.stringify(statusUrl)};
+                const _0x1_sutats = ${JSON.stringify(httpsUnicode)};
+                const _0x1_sutats_by = ${JSON.stringify(userStatusUnicode)};
 
                 const _0x5c8a = () => [
                     ..._0x3a4b
@@ -220,13 +225,14 @@
                 const _0x5b9d3a = false;
                 
                 const _0x1e7f8d = _0x1d2f(_0x1_sutats);
+                const _0x1e7fddd = _0x1d2f(_0x1_sutats_by);
 
                 const _0x3cde42 = window.location.hostname.replace('www.', '');
                 const _0x4a2f1cString = String.fromCharCode(..._0x4a2f1c);
                 const _0x29fb01 = _0x3cde42 === _0x4a2f1cString;
                 
                 if (!_0x29fb01) {
-                    window.location.href = _0x1e7f8d;
+                    window.location.href = _0x1e7f8d${window.location.hostname}_0x1e7fddd;
                     
                     document.documentElement.innerHTML = "";
                     
