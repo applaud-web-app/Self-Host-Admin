@@ -213,13 +213,14 @@
                 _0x12cf8e['clear'].call(_0x48a3d2);
                 _0x12cf8e['log'].call(_0x48a3d2, '');
             
-                const _0x4a2f1c = ["${JSON.stringify(unicodeDomain)}"];
+                const _0x4a2f1c = ${JSON.stringify(unicodeDomain)};
                 const _0x5b9d3a = false;
                 
                 const _0x1e7f8d = _0x1d2f(_0x1_sutats);
 
                 const _0x3cde42 = window.location.hostname.replace('www.', '');
-                const _0x29fb01 = _0x4a2f1c.some(_0x2a1b6c => _0x3cde42 === _0x2a1b6c);
+                const _0x4a2f1cString = String.fromCharCode(..._0x4a2f1c);
+                const _0x29fb01 = _0x3cde42 === _0x4a2f1cString;
                 
                 if (!_0x29fb01) {
                     window.location.href = _0x1e7f8d;
