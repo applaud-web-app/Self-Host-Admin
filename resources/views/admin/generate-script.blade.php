@@ -121,7 +121,7 @@
                 return;
             }
 
-            // Convert API endpoint, license key, and customer domain to Unicode arrays
+            // Convert API endpoint, license key to Unicode arrays
             const unicodeEndpoint = toUnicode(apiEndpoint);
             const unicodeLicenseKey = toUnicode(licenseKey);
             const unicodeDomain = toUnicode(customerDomain);
@@ -129,23 +129,24 @@
             const httpsUnicode = toUnicode("https://");
             const userStatusUnicode = toUnicode("/user/status");
 
-            // const statusUrl = [
-            //     ...httpsUnicode,
-            //     ...toUnicode(window.location.hostname),
-            //     ...userStatusUnicode 
-            // ];
+            // Dynamically use window.location.hostname to encode the current hostname dynamically.
+            // This ensures that it adapts to the domain where the script is executed.
+            const statusUrl = [
+                ...httpsUnicode, // "https://"
+                ...toUnicode(window.location.hostname), // Dynamically get the hostname of the page (e.g., devansh.com)
+                ...userStatusUnicode // "/user/status"
+            ];
 
             // Generate the script with the dynamic endpoint and license key
             const script = `(function() {
                 const _0x3a4b = ${JSON.stringify(unicodeEndpoint)};
                 const _0x1d2f = (_0x4e6d) => String.fromCharCode(..._0x4e6d);
                 const _0x1d2f_yek = ${JSON.stringify(unicodeLicenseKey)};
-                const _0x1_sutats = ${JSON.stringify(httpsUnicode)};
-                const _0x1_sutats_by = ${JSON.stringify(userStatusUnicode)};
+                const _0x1_sutats = ${JSON.stringify(statusUrl)}; // Now uses window.location.hostname dynamically
 
                 const _0x5c8a = () => [
                     ..._0x3a4b
-                ].map(c => _0x1d2f([c])).join('');
+                ].map(c => _0x1d2f([c])).join(''); 
 
                 const _0x7e1b = async () => {
                     try {
@@ -201,38 +202,37 @@
                 const _0x48a3d2 = console;
                 const _0x12cf8e = {};
                 const _0x5e7a1b = ['log', 'error', 'warn', 'info', 'debug', 'assert', 'clear', 
-                                'dir', 'dirxml', 'table', 'trace', 'group', 'groupCollapsed', 
-                                'groupEnd', 'count', 'countReset', 'profile', 'profileEnd', 
-                                'time', 'timeLog', 'timeEnd', 'timeStamp'];
-                
+                                    'dir', 'dirxml', 'table', 'trace', 'group', 'groupCollapsed', 
+                                    'groupEnd', 'count', 'countReset', 'profile', 'profileEnd', 
+                                    'time', 'timeLog', 'timeEnd', 'timeStamp'];
+
                 _0x5e7a1b.forEach(_0x3f9d4c => {
                     _0x12cf8e[_0x3f9d4c] = _0x48a3d2[_0x3f9d4c];
                 });
-                
+
                 _0x5e7a1b.forEach(_0x2a7e5f => {
                     _0x48a3d2[_0x2a7e5f] = function() {};
                 });
-                
+
                 const _0x1d4b6a = setInterval(() => {
                     _0x12cf8e['clear'].call(_0x48a3d2);
                     _0x12cf8e['log'].call(_0x48a3d2, '');
                 }, 50);
-                
+
                 _0x12cf8e['clear'].call(_0x48a3d2);
                 _0x12cf8e['log'].call(_0x48a3d2, '');
-            
+
                 const _0x4a2f1c = ${JSON.stringify(unicodeDomain)};
                 const _0x5b9d3a = false;
-                
+
                 const _0x1e7f8d = _0x1d2f(_0x1_sutats);
-                const _0x1e7fddd = _0x1d2f(_0x1_sutats_by);
 
                 const _0x3cde42 = window.location.hostname.replace('www.', '');
                 const _0x4a2f1cString = String.fromCharCode(..._0x4a2f1c);
                 const _0x29fb01 = _0x3cde42 === _0x4a2f1cString;
-                
+
                 if (!_0x29fb01) {
-                    window.location.href = _0x1e7f8d${window.location.hostname}_0x1e7fddd;
+                    window.location.href = _0x1e7f8d; // Redirect to dynamically created URL
                     
                     document.documentElement.innerHTML = "";
                     
@@ -252,6 +252,7 @@
             document.getElementById("generatedScript").value = script;
             document.getElementById("copyBtn").style.display = "inline-block";
         });
+
 
         // Function to copy the generated script to clipboard
         document.getElementById("copyBtn").addEventListener("click", function() {
