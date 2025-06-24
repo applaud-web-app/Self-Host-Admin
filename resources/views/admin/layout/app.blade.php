@@ -8,6 +8,8 @@
     <meta name="author" content="" />
     <meta name="robots" content="" />
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+
     <title>Aplu Push</title>
 
     <meta name="description" content="Fastest Push Notification Service in India" />

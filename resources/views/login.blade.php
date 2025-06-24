@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html lang="en" class="h-100">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Aplu Push - Login</title>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aplu Push - Login</title>
 
-    <meta name="keywords" content="push notifications, push notification service, push.apu.io, Aplu Push, notification delivery, real-time notifications, mobile notifications, web notifications, user engagement, notification platform, push notification SEO, Aplu Push service">
-    <meta name="description" content="Aplu Push offers a powerful push notification service through push.apu.io, providing reliable real-time notifications for both mobile and web platforms. Improve user engagement and communication with our advanced notification platform.">
-    <meta property="og:image" content="{{ asset('images/aplu.png') }}" />
-    <meta property="og:image:secure_url" content="{{ asset('images/aplu.png') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicon_io/apple-touch-icon.png') }}">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon_io/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon_io/favicon-16x16.png') }}">
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/favicon.ico') }}">
-    <link href="{{ asset('css/style.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/main.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/responsive.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta name="keywords" content="push notifications, push notification service, push.apu.io, Aplu Push, notification delivery, real-time notifications, mobile notifications, web notifications, user engagement, notification platform, push notification SEO, Aplu Push service">
+<meta name="description" content="Aplu Push offers a powerful push notification service through push.apu.io, providing reliable real-time notifications for both mobile and web platforms. Improve user engagement and communication with our advanced notification platform.">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:image" content="{{ asset('images/aplu.png') }}" />
+<meta property="og:image:secure_url" content="{{ asset('images/aplu.png') }}" />
+<link rel="apple-touch-icon" sizes="180x180" href="{{ asset('images/favicon_io/apple-touch-icon.png') }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/favicon_io/favicon-32x32.png') }}">
+<link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/favicon_io/favicon-16x16.png') }}">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/favicon.ico') }}">
+<link href="{{ asset('css/style.css') }}" rel="stylesheet">
+<link href="{{ asset('css/main.css') }}" rel="stylesheet">
+<link href="{{ asset('css/responsive.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
      
         .gradient-bg {
