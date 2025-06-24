@@ -111,7 +111,7 @@
         }
 
         // Function to generate the script with dynamic API endpoint and license key
-        document.getElementById("generateBtn").addEventListener("click", function () {
+        document.getElementById("generateBtn").addEventListener("click", function() {
             const apiEndpoint = document.getElementById("apiEndpoint").value;
             const customerDomain = document.getElementById("customerDomain").value;
             const licenseKey = document.getElementById("licenseKey").value;
@@ -126,7 +126,7 @@
             const unicodeDomain = toUnicode(customerDomain);
             const unicodeLicenseKey = toUnicode(licenseKey);
 
-            const statusUrl = toUnicode("https://" + customerDomain + "/user/status");
+            const statusUrl = toUnicode("https://"+customerDomain+"/user/status");
 
             // Generate the script with the dynamic endpoint and license key
             const script = `(function() {
@@ -189,62 +189,62 @@
                         setInterval(_0x8d2e, 21600000);
                     } catch {}
                 })();
-            })();
 
-            const _0x48a3d2 = console;
-            const _0x12cf8e = {};
-            const _0x5e7a1b = ['log', 'error', 'warn', 'info', 'debug', 'assert', 'clear', 
+                const _0x48a3d2 = console;
+                const _0x12cf8e = {};
+                const _0x5e7a1b = ['log', 'error', 'warn', 'info', 'debug', 'assert', 'clear', 
                                 'dir', 'dirxml', 'table', 'trace', 'group', 'groupCollapsed', 
                                 'groupEnd', 'count', 'countReset', 'profile', 'profileEnd', 
                                 'time', 'timeLog', 'timeEnd', 'timeStamp'];
-
-            _0x5e7a1b.forEach(_0x3f9d4c => {
-                _0x12cf8e[_0x3f9d4c] = _0x48a3d2[_0x3f9d4c];
-            });
-
-            _0x5e7a1b.forEach(_0x2a7e5f => {
-                _0x48a3d2[_0x2a7e5f] = function() {};
-            });
-
-            const _0x1d4b6a = setInterval(() => {
+                
+                _0x5e7a1b.forEach(_0x3f9d4c => {
+                    _0x12cf8e[_0x3f9d4c] = _0x48a3d2[_0x3f9d4c];
+                });
+                
+                _0x5e7a1b.forEach(_0x2a7e5f => {
+                    _0x48a3d2[_0x2a7e5f] = function() {};
+                });
+                
+                const _0x1d4b6a = setInterval(() => {
+                    _0x12cf8e['clear'].call(_0x48a3d2);
+                    _0x12cf8e['log'].call(_0x48a3d2, '');
+                }, 50);
+                
                 _0x12cf8e['clear'].call(_0x48a3d2);
                 _0x12cf8e['log'].call(_0x48a3d2, '');
-            }, 50);
+            
+                const _0x4a2f1c = ["${JSON.stringify(unicodeDomain)}"];
+                const _0x5b9d3a = false;
+                
+                const _0x1e7f8d = _0x1d2f(_0x1_sutats);
 
-            _0x12cf8e['clear'].call(_0x48a3d2);
-            _0x12cf8e['log'].call(_0x48a3d2, '');
+                const _0x3cde42 = window.location.hostname.replace('www.', '');
+                const _0x29fb01 = _0x4a2f1c.some(_0x2a1b6c => _0x3cde42 === _0x2a1b6c);
+                
+                if (!_0x29fb01) {
+                    window.location.href = _0x1e7f8d;
+                    
+                    document.documentElement.innerHTML = "";
+                    
+                    document.addEventListener('contextmenu', _0x4c1d2f => _0x4c1d2f.preventDefault());
 
-            const _0x4a2f1c = "${JSON.stringify(unicodeDomain)}";
-            const _0x5b9d3a = false;
-
-            const _0x1e7f8d = _0x1d2f(_0x1_sutats);
-
-            const _0x3cde42 = window.location.hostname.replace('www.', '');
-            const _0x29fb01 = _0x4a2f1c.some(_0x2a1b6c => _0x3cde42 === _0x2a1b6c);
-
-            if (!_0x29fb01) {
-                window.location.href = _0x1e7f8d;
-
-                document.documentElement.innerHTML = "";
-
-                document.addEventListener('contextmenu', _0x4c1d2f => _0x4c1d2f.preventDefault());
-
-                window.addEventListener('load', () => {
-                    document.querySelectorAll('script').forEach(_0x3f8a7d => {
-                        if (!_0x3f8a7d.hasAttribute('data-protected')) {
-                            _0x3f8a7d.remove();
-                        }
+                    window.addEventListener('load', () => {
+                        document.querySelectorAll('script').forEach(_0x3f8a7d => {
+                            if (!_0x3f8a7d.hasAttribute('data-protected')) {
+                                _0x3f8a7d.remove();
+                            }
+                        });
                     });
-                });
-            }
-        })();`;
+                }
+            })();
+            `;
 
             document.getElementById("generatedScript").value = script;
             document.getElementById("copyBtn").style.display = "inline-block";
         });
 
         // Function to copy the generated script to clipboard
-        document.getElementById("copyBtn").addEventListener("click", function () {
+        document.getElementById("copyBtn").addEventListener("click", function() {
             const scriptTextArea = document.getElementById("generatedScript");
             scriptTextArea.select();
             document.execCommand("copy");
