@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\LicenseController;
 use App\Http\Controllers\Api\CrossPlatformController;
 
-Route::post('verify', [LicenseController::class, 'verifyStatus']);
+Route::post('verify', [LicenseController::class, 'verifyStatus'])->name('api.verify');
 
 
 Route::post('license/verify', [LicenseController::class, 'verify']);

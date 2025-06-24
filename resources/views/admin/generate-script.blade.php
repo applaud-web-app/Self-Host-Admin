@@ -78,7 +78,7 @@
 
     <div class="form-group">
         <label for="apiEndpoint">Verify API Endpoint:</label>
-        <input type="text" id="apiEndpoint" placeholder="https://yourdomain.com/verify">
+        <input type="text" id="apiEndpoint" value="{{route('api.verify')}}" placeholder="https://yourdomain.com/verify">
     </div>
 
     <div class="form-group">
