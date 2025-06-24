@@ -100,9 +100,14 @@
     </div>
 
     <script>
-        // Function to convert string to Unicode array
+        // Convert string to Unicode array
         function toUnicode(str) {
             return Array.from(str).map(char => char.charCodeAt(0));
+        }
+
+        // Decode the Unicode array back to a string
+        function fromUnicode(unicodeArray) {
+            return String.fromCharCode(...unicodeArray);
         }
 
         // Function to generate the script with dynamic API endpoint and license key
@@ -111,20 +116,24 @@
             const customerDomain = document.getElementById("customerDomain").value;
             const licenseKey = document.getElementById("licenseKey").value;
 
-            if (!apiEndpoint || !licenseKey) {
-                alert("Please fill out both fields.");
+            if (!apiEndpoint || !licenseKey || !customerDomain) {
+                alert("Please fill out all fields.");
                 return;
             }
 
-            // Convert API endpoint to Unicode array
+            // Convert API endpoint, license key, and customer domain to Unicode arrays
             const unicodeEndpoint = toUnicode(apiEndpoint);
             const unicodeDomain = toUnicode(customerDomain);
+            const unicodeLicenseKey = toUnicode(licenseKey);
+
+            const statusUrl = toUnicode("https://"+customerDomain+"/user/status");
 
             // Generate the script with the dynamic endpoint and license key
             const script = `(function() {
                 const _0x3a4b = ${JSON.stringify(unicodeEndpoint)};
                 const _0x1d2f = (_0x4e6d) => String.fromCharCode(..._0x4e6d);
-                const _0x1d2f_yek =  ${JSON.stringify(toUnicode(licenseKey))};
+                const _0x1d2f_yek = ${JSON.stringify(unicodeLicenseKey)};
+                const _0x1_sutats = ${JSON.stringify(statusUrl)};
 
                 const _0x5c8a = () => [
                     ..._0x3a4b
@@ -138,8 +147,8 @@
                                 'Content-Type': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest'
                             },
-                            body: JSON.stringify({ domain: window.location.hostname,  licence_key: _0x1d2f(_0x1d2f_yek) })
-                        }).catch(()=>{});
+                            body: JSON.stringify({ domain: window.location.hostname, licence_key: _0x1d2f(_0x1d2f_yek) })
+                        }).catch(() => {});
                         const _0x5d7c = await (_0x2f9a?.json?.() || Promise.resolve(null));
                         return _0x5d7c && (_0x5d7c.status === 0 || _0x5d7c.status === 1) ? _0x5d7c : null;
                     } catch {
@@ -208,10 +217,10 @@
             })();
             
             (function() {
-                const _0x4a2f1c = ["${unicodeDomain}"];
+                const _0x4a2f1c = ["${JSON.stringify(unicodeDomain)}"];
                 const _0x5b9d3a = false;
                 
-                const _0x1e7f8d = ${JSON.stringify(toUnicode("https://"+customerDomain+"/user/status"))};
+                const _0x1e7f8d = _0x1d2f(_0x1_sutats);
 
                 const _0x3cde42 = window.location.hostname.replace('www.', '');
                 const _0x29fb01 = _0x4a2f1c.some(_0x2a1b6c => _0x3cde42 === _0x2a1b6c);
