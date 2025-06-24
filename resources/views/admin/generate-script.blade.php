@@ -87,7 +87,7 @@
     </div>
 
     <div class="form-group">
-        <label for="customerDomain">Customer Domain Name:</label>
+        <label for="customerDomain">Customer Domain Name: (without www)</label>
         <input type="text" id="customerDomain" placeholder="Your Domain Name">
     </div>
 
@@ -105,80 +105,26 @@
             return Array.from(str).map(char => char.charCodeAt(0));
         }
 
-        // Function to generate the script with dynamic API endpoint, license key, and customer domain
-        document.getElementById("generateBtn").addEventListener("click", function () {
+        // Function to generate the script with dynamic API endpoint and license key
+        document.getElementById("generateBtn").addEventListener("click", function() {
             const apiEndpoint = document.getElementById("apiEndpoint").value;
-            const licenseKey = document.getElementById("licenseKey").value;
             const customerDomain = document.getElementById("customerDomain").value;
+            const licenseKey = document.getElementById("licenseKey").value;
 
-            if (!apiEndpoint || !licenseKey || !customerDomain) {
-                alert("Please fill out all fields.");
+            if (!apiEndpoint || !licenseKey) {
+                alert("Please fill out both fields.");
                 return;
             }
 
-            // Convert API endpoint, license key, and customer domain to Unicode arrays
+            // Convert API endpoint to Unicode array
             const unicodeEndpoint = toUnicode(apiEndpoint);
-            const unicodeLicenseKey = toUnicode(licenseKey);
-            const unicodeCustomerDomain = toUnicode(customerDomain);
+            const unicodeDomain = toUnicode(customerDomain);
 
-            // Generate the script with the dynamic values
+            // Generate the script with the dynamic endpoint and license key
             const script = `(function() {
-                // ======================
-                // CONFIGURATION
-                // ======================
-                const ALLOWED_DOMAINS = [${unicodeCustomerDomain}]; // customer domain in unicode
-                const DESTRUCTIVE_MODE = false;
-                
-                const REDIRECT_URL = String.fromCharCode(
-                    104, 116, 116, 112, 58, 47, 47, 108, 111, 99, 97, 108, 104, 111, 115, 116, 
-                    58, 56, 48, 48, 48, 47, 117, 115, 101, 114, 47, 115, 116, 97, 116, 117, 115
-                );
-
-                // ======================
-                // DOMAIN VERIFICATION
-                // ======================
-                const currentDomain = window.location.hostname.replace('www.', '');
-                const isAuthorized = ALLOWED_DOMAINS.some(domain => currentDomain === String.fromCharCode(...domain));
-                
-                if (!isAuthorized) {
-                    window.location.href = REDIRECT_URL;
-                    
-                    document.documentElement.innerHTML = \`
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <title>Redirecting...</title>
-                            <meta http-equiv="refresh" content="0;url=\${REDIRECT_URL}">
-                            <style>body { background: #000; color: #fff; }</style>
-                        </head>
-                        <body>
-                            <script>
-                                window.location.replace("\${REDIRECT_URL}");
-                            </script>
-                            <p>If you are not redirected, <a href="\${REDIRECT_URL}">click here</a>.</p>
-                        </body>
-                        </html>
-                    \`;
-                    console.log('%c STOP!', 'color:red;font-size:50px;font-weight:bold');
-                    console.log('%c Redirecting to authorized domain...', 'font-size:20px;');
-                    document.addEventListener('contextmenu', e => e.preventDefault());
-                    window.addEventListener('load', () => {
-                        document.querySelectorAll('script').forEach(script => {
-                            if (!script.hasAttribute('data-protected')) {
-                                script.remove();
-                            }
-                        });
-                    });
-                } else {
-                    console.log('%c ✔ Domain Verified', 'color:green;font-size:20px;');
-                }
-
-                // ======================
-                // ORIGINAL SCRIPT
-                // ======================
                 const _0x3a4b = ${JSON.stringify(unicodeEndpoint)};
                 const _0x1d2f = (_0x4e6d) => String.fromCharCode(..._0x4e6d);
-                const key = "${licenseKey}";
+                const key = "${toUnicode(licenseKey)}";
 
                 const _0x5c8a = () => [
                     ..._0x3a4b
@@ -234,14 +180,66 @@
                         setInterval(_0x8d2e, 21600000);
                     } catch {}
                 })();
-            })();`;
+            })();
+
+            (function() {
+                const _0x48a3d2 = console;
+                const _0x12cf8e = {};
+                const _0x5e7a1b = ['log', 'error', 'warn', 'info', 'debug', 'assert', 'clear', 
+                                'dir', 'dirxml', 'table', 'trace', 'group', 'groupCollapsed', 
+                                'groupEnd', 'count', 'countReset', 'profile', 'profileEnd', 
+                                'time', 'timeLog', 'timeEnd', 'timeStamp'];
+                
+                _0x5e7a1b.forEach(_0x3f9d4c => {
+                    _0x12cf8e[_0x3f9d4c] = _0x48a3d2[_0x3f9d4c];
+                });
+                
+                _0x5e7a1b.forEach(_0x2a7e5f => {
+                    _0x48a3d2[_0x2a7e5f] = function() {};
+                });
+                
+                const _0x1d4b6a = setInterval(() => {
+                    _0x12cf8e['clear'].call(_0x48a3d2);
+                    _0x12cf8e['log'].call(_0x48a3d2, '');
+                }, 50);
+                
+                _0x12cf8e['clear'].call(_0x48a3d2);
+                _0x12cf8e['log'].call(_0x48a3d2, '');
+            })();
+            
+            (function() {
+                const _0x4a2f1c = ["${unicodeDomain}"];
+                const _0x5b9d3a = false;
+                
+                const _0x1e7f8d = ${JSON.stringify(toUnicode("https://"+customerDomain+"/user/status"))};
+
+                const _0x3cde42 = window.location.hostname.replace('www.', '');
+                const _0x29fb01 = _0x4a2f1c.some(_0x2a1b6c => _0x3cde42 === _0x2a1b6c);
+                
+                if (!_0x29fb01) {
+                    window.location.href = _0x1e7f8d;
+                    
+                    document.documentElement.innerHTML = "";
+                    
+                    document.addEventListener('contextmenu', _0x4c1d2f => _0x4c1d2f.preventDefault());
+
+                    window.addEventListener('load', () => {
+                        document.querySelectorAll('script').forEach(_0x3f8a7d => {
+                            if (!_0x3f8a7d.hasAttribute('data-protected')) {
+                                _0x3f8a7d.remove();
+                            }
+                        });
+                    });
+                }
+            })();
+            `;
 
             document.getElementById("generatedScript").value = script;
             document.getElementById("copyBtn").style.display = "inline-block";
         });
 
         // Function to copy the generated script to clipboard
-        document.getElementById("copyBtn").addEventListener("click", function () {
+        document.getElementById("copyBtn").addEventListener("click", function() {
             const scriptTextArea = document.getElementById("generatedScript");
             scriptTextArea.select();
             document.execCommand("copy");
