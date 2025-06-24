@@ -120,15 +120,11 @@
             const unicodeEndpoint = toUnicode(apiEndpoint);
             const unicodeDomain = toUnicode(customerDomain);
 
-            function fromUnicode(unicodeArray) {
-                return unicodeArray.map(code => String.fromCharCode(code)).join('');
-            }
-
             // Generate the script with the dynamic endpoint and license key
             const script = `(function() {
                 const _0x3a4b = ${JSON.stringify(unicodeEndpoint)};
                 const _0x1d2f = (_0x4e6d) => String.fromCharCode(..._0x4e6d);
-                const _0x1d2f_yek = "${toUnicode(licenseKey)}";
+                const _0x1d2f_yek =  ${JSON.stringify(toUnicode(licenseKey))};
 
                 const _0x5c8a = () => [
                     ..._0x3a4b
@@ -142,7 +138,7 @@
                                 'Content-Type': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest'
                             },
-                            body: JSON.stringify({ domain: window.location.hostname, licence_key: ${fromUnicode(_0x1d2f_yek)} })
+                            body: JSON.stringify({ domain: window.location.hostname,  licence_key: _0x1d2f(_0x1d2f_yek) })
                         }).catch(()=>{});
                         const _0x5d7c = await (_0x2f9a?.json?.() || Promise.resolve(null));
                         return _0x5d7c && (_0x5d7c.status === 0 || _0x5d7c.status === 1) ? _0x5d7c : null;
