@@ -129,7 +129,7 @@
             const httpsUnicode = toUnicode("https://");
             const userStatusUnicode = toUnicode("/user/status");
 
-           const statusUrl = [...httpsUnicode, ...toUnicode(window.location.hostname), ...userStatusUnicode];
+            const statusUrl = [...httpsUnicode, ...toUnicode(window.location.hostname), ...userStatusUnicode];
 
             // Generate the script with the dynamic endpoint and license key
             const script = `(function() {
