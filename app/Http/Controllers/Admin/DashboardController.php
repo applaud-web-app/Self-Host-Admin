@@ -53,4 +53,8 @@ class DashboardController extends Controller
         return redirect()->route('login');
     }
 
+    public function generateScript(){
+        return view('admin.generate-script');
+    }
+
 }

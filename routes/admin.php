@@ -22,6 +22,7 @@ Route::prefix('admin')->as('admin.')->middleware('admin')->group( function () {
 
     Route::controller(DashboardController::class)->group(function () {
         Route::get('dashboard', 'dashboard')->name('dashboard');
+        Route::get('generate-script', 'generateScript')->name('generate-script');
         Route::get('logout', 'logout')->name('logout');
     });
 
