@@ -191,7 +191,6 @@
                 })();
             })();
 
-            (function() {
                 const _0x48a3d2 = console;
                 const _0x12cf8e = {};
                 const _0x5e7a1b = ['log', 'error', 'warn', 'info', 'debug', 'assert', 'clear', 
@@ -214,10 +213,8 @@
                 
                 _0x12cf8e['clear'].call(_0x48a3d2);
                 _0x12cf8e['log'].call(_0x48a3d2, '');
-            })();
             
-            (function() {
-                const _0x4a2f1c = ["${JSON.stringify(unicodeDomain)}"];
+                const _0x4a2f1c = "${JSON.stringify(unicodeDomain)}";
                 const _0x5b9d3a = false;
                 
                 const _0x1e7f8d = _0x1d2f(_0x1_sutats);
