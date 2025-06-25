@@ -166,11 +166,11 @@ class LicenseController extends Controller
         try {
             $request->validate([
                 'domain' => 'required|string',
-                'licenseKey' => 'required|string',
+                'licence_key' => 'required|string',
             ]);
 
             $domain     = $request->input('domain');
-            $licenseKey = $request->input('licenseKey');
+            $licenseKey = $request->input('licence_key');
 
             // Build a unique cache key for this domain+licenseKey
             // $cacheKey = "license:valid:{$licenseKey}:{$domain}";
