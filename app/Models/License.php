@@ -8,7 +8,7 @@ class License extends Model
 {
     protected $fillable = [
         'user_id',
-        'product_uuid',
+        'product_id',
         'raw_key',
         'key_salt',
         'key_hash',
@@ -21,9 +21,8 @@ class License extends Model
 
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_uuid', 'uuid');
+        return $this->belongsTo(Product::class);
     }
-
 
     public function payment()
     {

@@ -19,8 +19,7 @@ return new class extends Migration
             $table->string('activated_ip', 100)->nullable();
             $table->boolean('is_activated')->default(false);
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('product_uuid',150);
-            $table->foreign('product_uuid')->references('uuid')->on('products')->onDelete('restrict');
+            $table->foreignId('product_id')->constrained('products')->onDelete('restrict');
             $table->foreignId('payment_id')->constrained('payments')->onDelete('cascade');
             $table->enum('status', ['active', 'revoked', 'expired', 'refunded'])->default('active');
             $table->timestamp('issued_at')->useCurrent();

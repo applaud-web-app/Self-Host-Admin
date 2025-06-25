@@ -290,7 +290,7 @@ class AuthController extends Controller
 
             License::create([
                 'user_id'    => $user->id,
-                'product_uuid' => $product->uuid,
+                'product_id' => $product->id,
                 'payment_id' => $paymentModel->id,
                 'status'     => 'active',
                 'issued_at'  => now()
