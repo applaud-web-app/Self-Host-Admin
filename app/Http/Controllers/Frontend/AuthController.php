@@ -91,7 +91,7 @@ class AuthController extends Controller
         $requestedUuid = $request->input('product_uuid', self::PRODUCT_UUID);
 
         if ($requestedUuid) {
-            $product = Product::select('price','uuid','name')->where('uuid', $requestedUuid)->where('status',1)->where('type','core')->first();
+            $product = Product::select('price','uuid','name')->where('uuid', $requestedUuid)->where('status', 1)->where('type','core')->first();
         }
 
         if(empty($product)){

@@ -61,10 +61,11 @@
                                             <th>Order Id</th>
                                             <th>Product</th>
                                             <th>Type</th>
-                                            <th>User Email</th> {{-- NEW COLUMN --}}
+                                            <th>User Email</th>
                                             <th>Amount</th>
                                             <th>Status</th>
                                             <th>Paid At</th>
+                                            <th>Generate Key</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -77,17 +78,45 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="generateKey" tabindex="-1" aria-labelledby="generateKeyLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <form action="{{ route('admin.generate-key.show') }}" method="POST" id="generateKeyForm">
+                        @csrf
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title" id="generateKeyLabel">Generate Key</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="product_uuid" id="productUuidField">
+                            <div class="mb-3">
+                                <label for="server_ip" class="form-label">Server IP <span class="text-danger">*</span></label>
+                                <input type="text" name="server_ip" id="server_ip" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="domain_name" class="form-label">Domain Name <span class="text-danger">*</span></label>
+                                <input type="text" name="domain_name" id="domain_name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-end">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Generate</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </section>
 @endsection
 
 @push('scripts')
     <script src="{{ asset('vendor/datatables/js/jquery.dataTables.min.js') }}"></script>
-    {{-- Include Select2 JS --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
     <script>
         $(document).ready(function() {
-            // Initialize Select2 on the #filter-user dropdown
+            // Initialize Select2 dropdown
             $('#filter-user').select2({
                 placeholder: 'Select a user (email)',
                 allowClear: true,
@@ -95,79 +124,38 @@
                     url: "{{ route('admin.users.ajax') }}",
                     dataType: 'json',
                     delay: 250,
-                    data: function (params) {
-                        return {
-                            q: params.term // search term
-                        };
-                    },
-                    processResults: function (data) {
-                        // data should be an array of { id, text }
-                        return {
-                            results: data
-                        };
-                    },
+                    data: function(params) { return { q: params.term }; },
+                    processResults: function(data) { return { results: data }; },
                     cache: true
                 }
             });
 
             // Initialize DataTable
-            const table = $('#payments-table').DataTable({
-                searching: false,
-                paging: false,
-                select: false,
+            var table = $('#payments-table').DataTable({
                 processing: true,
                 serverSide: true,
+                searching: false,
                 ajax: {
                     url: "{{ route('admin.payment.show') }}",
-                    data: function (d) {
-                        // SINGLE search term
+                    data: function(d) {
                         d.search_term = $('#filter-search').val().trim();
-
-                        // user_id from the Select2
-                        d.user_id = $('#filter-user').val();
+                        d.user_id     = $('#filter-user').val();
                     }
                 },
                 columns: [
-                    {
-                        data: 'DT_RowIndex',
-                        name: 'DT_RowIndex',
-                        orderable: false,
-                        searchable: false
-                    },
-                    {
-                        data: 'razorpay_order_id',
-                        name: 'razorpay_order_id'
-                    },
-                    {
-                        data: 'product_name',
-                        name: 'product.name'
-                    },
-                    {
-                        data: 'product_type',
-                        name: 'product.type'
-                    },
-                    {
-                        data: 'user_email',
-                        name: 'user.email'
-                    }, // NEW column definition
-                    {
-                        data: 'amount',
-                        name: 'amount'
-                    },
-                    {
-                        data: 'status',
-                        name: 'status'
-                    },
-                    {
-                        data: 'paid_at',
-                        name: 'created_at'
-                    },
+                    { data: 'DT_RowIndex', orderable: false, searchable: false },
+                    { data: 'razorpay_order_id' },
+                    { data: 'product_name' },
+                    { data: 'product_type' },
+                    { data: 'user_email' },
+                    { data: 'amount' },
+                    { data: 'status' },
+                    { data: 'paid_at' },
+                    { data: 'generate_key', orderable: false, searchable: false }
                 ],
-                order: [
-                    [7, 'desc'] // “Paid At” column is index 7 (0-based)
-                ],
+                order: [[7, 'desc']],
                 language: {
-                    processing: "<span class='spinner-border spinner-border-sm' role='status' aria-hidden='true'></span> Loading…",
+                    processing: "<span class='spinner-border spinner-border-sm'></span> Loading…",
                     paginate: {
                         previous: '<i class="fas fa-angle-double-left"></i>',
                         next: '<i class="fas fa-angle-double-right"></i>'
@@ -175,22 +163,71 @@
                 }
             });
 
-            // Whenever the single search input changes, redraw the table
-            $('#filter-search').on('keyup', function() {
-                table.draw();
-            });
-
-            // Whenever the Select2 user filter changes, redraw
-            $('#filter-user').on('change', function() {
-                table.draw();
-            });
-
-            // Reset all filters
-            $('#filter-reset').on('click', function() {
+            // Redraw on filter changes
+            $('#filter-search').keyup(function() { table.draw(); });
+            $('#filter-user').change(function() { table.draw(); });
+            $('#filter-reset').click(function() {
                 $('#filter-search').val('');
-                // Clear Select2 selection
                 $('#filter-user').val(null).trigger('change');
                 table.draw();
+            });
+
+            // Generate Key button
+            $('#payments-table').on('click', '.btn-generate-key', function() {
+                var uuid = $(this).data('uuid');
+                $('#productUuidField').val(uuid);
+                var modal = new bootstrap.Modal(document.getElementById('generateKey'));
+                modal.show();
+            });
+
+             // Set up jQuery Validation on the modal form
+            $('#generateKeyForm').validate({
+                rules: {
+                    server_ip: {
+                        required: true,
+                        ipv4: true
+                    },
+                    domain_name: {
+                        required: true,
+                        // simple domain validation (no protocol)
+                        pattern: /^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+                    }
+                },
+                messages: {
+                    server_ip: {
+                        required: "Server IP is required",
+                        ipv4:     "Enter a valid IPv4 address (e.g. 192.168.0.1)"
+                    },
+                    domain_name: {
+                        required: "Domain Name is required",
+                        pattern:  "Enter a valid domain (e.g. example.com)"
+                    }
+                },
+                errorClass: 'is-invalid',
+                validClass: 'is-valid',
+                errorElement: 'div',
+                errorPlacement: function(error, element) {
+                    error.addClass('invalid-feedback');
+                    error.insertAfter(element);
+                },
+                highlight: function(element) {
+                    $(element).addClass('is-invalid').removeClass('is-valid');
+                },
+                unhighlight: function(element) {
+                    $(element).addClass('is-valid').removeClass('is-invalid');
+                }
+            });
+
+            // Button-processing state on submit
+            $('#generateKeyForm').on('submit', function(e) {
+                if (!$(this).valid()) {
+                    // prevent submission if invalid
+                    e.preventDefault();
+                    return;
+                }
+                var $btn = $(this).find('button[type="submit"]');
+                $btn.prop('disabled', true)
+                    .html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
             });
         });
     </script>

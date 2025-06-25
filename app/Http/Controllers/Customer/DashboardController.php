@@ -19,7 +19,6 @@ class DashboardController extends Controller
         ->firstOrFail();
 
         return view('frontend.customer.dashboard', [
-           'licenseString' => $lic->raw_key,
             'product'       => $lic->product,
         ]);
     }
