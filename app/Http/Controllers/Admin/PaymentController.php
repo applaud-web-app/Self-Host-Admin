@@ -10,9 +10,36 @@ use DataTables;
 class PaymentController extends Controller
 {
     public function showPayment(Request $request)
-    {
-        $serverIp = $request->server('SERVER_ADDR');
-        dd($serverIp);
+    { 
+        // 1) From the Laravel Request wrapper
+        $fromRequestServer = $request->server('SERVER_ADDR');
+
+        // 2) Directly from the PHP superglobal
+        $fromSuperGlobal   = $_SERVER['SERVER_ADDR'] ?? null;
+
+        // 3) What the OS thinks our hostname is…
+        $hostname          = gethostname();
+        // …and its DNS-resolved IPv4
+        $ipViaDns          = gethostbyname($hostname);
+
+        // 4) Public-facing IP via external service
+        //    (requires allow_url_fopen or use Guzzle/http client instead)
+        try {
+            $publicIp = file_get_contents('https://api.ipify.org');
+        } catch (\Throwable $e) {
+            $publicIp = 'error: '.$e->getMessage();
+        }
+
+        // Bundle them up and dump
+        $allIps = [
+            'Laravel $request->server("SERVER_ADDR")' => $fromRequestServer,
+            '$_SERVER["SERVER_ADDR"]'                => $fromSuperGlobal,
+            'gethostname()'                          => $hostname,
+            'gethostbyname(hostname)'                => $ipViaDns,
+            'Public IP (ipify)'                      => $publicIp,
+        ];
+
+        dd($allIps);
         if ($request->ajax()) {
             $query = Payment::with(['product:id,name,type,uuid','user:id,email'])
                 ->when($request->filled('search_term'), function ($q) use ($request) {
