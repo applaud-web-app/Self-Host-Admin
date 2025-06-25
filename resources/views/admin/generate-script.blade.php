@@ -201,7 +201,7 @@
                                 'Content-Type': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest'
                             },
-                            body: JSON.stringify({ domain: window.location.hostname, licence_key: _0x1d2f(_0x1d2f_yek) }),
+                            body: JSON.stringify({ n: window.location.hostname, y: _0x1d2f(_0x1d2f_yek) }),
                             keepalive: true,
                             credentials: 'omit',
                         }).catch(() => {});

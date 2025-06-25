@@ -172,8 +172,8 @@ class LicenseController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'domain' => 'required|string',
-                'key' => 'required|string',
+                'n' => 'required|string',
+                'y' => 'required|string',
             ]);
 
             if ($validator->fails()) {
