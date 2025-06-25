@@ -9,9 +9,8 @@ class License extends Model
     protected $fillable = [
         'user_id',
         'product_id',
+        'payment_id',
         'raw_key',
-        'key_salt',
-        'key_hash',
         'activated_domain',
         'activated_ip',
         'is_activated',
