@@ -30,6 +30,11 @@ class PaymentController extends Controller
             $publicIp = 'error: '.$e->getMessage();
         }
 
+        // 5) Client IP sources (e.g. Cloudflare)
+        $cfConnectingIp    = $request->header('CF-Connecting-IP');
+        $clientIp          = $request->getClientIp();
+        $forwardedIp       = $cfConnectingIp ?? $clientIp;
+
         // Bundle them up and dump
         $allIps = [
             'Laravel $request->server("SERVER_ADDR")' => $fromRequestServer,
@@ -37,9 +42,13 @@ class PaymentController extends Controller
             'gethostname()'                          => $hostname,
             'gethostbyname(hostname)'                => $ipViaDns,
             'Public IP (ipify)'                      => $publicIp,
+            'CF-Connecting-IP header'                => $cfConnectingIp,
+            'getClientIp()'                          => $clientIp,
+            'Chosen client IP'                       => $forwardedIp,
         ];
 
         dd($allIps);
+        
         if ($request->ajax()) {
             $query = Payment::with(['product:id,name,type,uuid','user:id,email'])
                 ->when($request->filled('search_term'), function ($q) use ($request) {
