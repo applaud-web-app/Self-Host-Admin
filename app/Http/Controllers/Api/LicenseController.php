@@ -7,6 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use App\Services\LicenseVerificationService;
 use App\Services\LicenseResponseService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
@@ -164,13 +165,20 @@ class LicenseController extends Controller
     public function verifyStatus(Request $request)
     {
         try {
-            $request->validate([
-                'domain' => 'required|string',
-                'licence_key' => 'required|string',
+            $validator = Validator::make($request->all(), [
+                'domain'      => 'required|string',
+                'licencekey' => 'required|string',
             ]);
 
+            if ($validator->fails()) {
+                return response()->json([
+                    'status'  => 0,
+                    'message' => 'Invalid Request.',
+                ], 200);
+            }
+
             $domain     = $request->input('domain');
-            $licenseKey = $request->input('licence_key');
+            $licenseKey = $request->input('licencekey');
 
             // Build a unique cache key for this domain+licenseKey
             // $cacheKey = "license:valid:{$licenseKey}:{$domain}";
