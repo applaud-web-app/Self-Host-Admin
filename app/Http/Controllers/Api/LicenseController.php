@@ -49,11 +49,17 @@ class LicenseController extends Controller
             $this->verificationService->applyRateLimiting($request->ip(), $data['license_key']);
 
             $domain = $this->verificationService->getRequestDomain($request);
+            if($domain === "unknown"){
+                return response()->json([
+                    'valid' => false,
+                    'message' => 'Domain not found..',
+                ], 403);
+            }
             $ip = $request->ip();
 
             $license = $this->verificationService->findAndValidateLicense($data['license_key'], $domain, $ip, $data['email'], $data['username']);
 
-            $this->verificationService->verifyLicenseCredentials($license, $data['license_key']);
+            $this->verificationService->verifyLicenseCredentials($data['license_key'], $domain);
 
             $this->verificationService->activateLicense($license, $domain, $ip);
 
@@ -166,8 +172,8 @@ class LicenseController extends Controller
     {
         try {
             $validator = Validator::make($request->all(), [
-                'domain'      => 'required|string',
-                'licencekey' => 'required|string',
+                'domain' => 'required|string',
+                'key' => 'required|string',
             ]);
 
             if ($validator->fails()) {
@@ -177,26 +183,26 @@ class LicenseController extends Controller
                 ], 200);
             }
 
-            $domain     = $request->input('domain');
-            $licenseKey = $request->input('licencekey');
+            $domain     = strtolower($request->input('domain'));
+            $licenseKey = $request->input('key');
 
-            // Build a unique cache key for this domain+licenseKey
+            // // Build a unique cache key for this domain+licenseKey
             // $cacheKey = "license:valid:{$licenseKey}:{$domain}";
 
             // // Cache the boolean existence check for 10 minutes
             // $isValid = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($licenseKey, $domain) {
             //     return License::where('raw_key', $licenseKey)
-            //                   ->where('activated_domain', $domain)
+            //                   ->whereRaw('LOWER(activated_domain) = ?', [$domain])
             //                   ->where('is_activated', 1)
             //                   ->where('status', 'active')
             //                   ->exists();
             // });
 
             $isValid = License::where('raw_key', $licenseKey)
-                        ->where('activated_domain', $domain)
-                        ->where('is_activated', 1)
-                        ->where('status', 'active')
-                        ->exists();
+            ->whereRaw('LOWER(activated_domain) = ?', [$domain])
+            ->where('is_activated', 1)
+            ->where('status', 'active')
+            ->exists();
 
             if ($isValid) {
                 return response()->json([
@@ -211,6 +217,7 @@ class LicenseController extends Controller
             ], 200);
 
         } catch (Exception $e) {
+            \Log::error('License verify failed: '.$e->getMessage(), ['trace'=>$e->getTrace()]);
             // Catch any exceptions and return an error response
             return response()->json([
                 'status' => 2,

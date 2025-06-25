@@ -14,23 +14,25 @@ return new class extends Migration
         Schema::create('licenses', function (Blueprint $table) {
             $table->bigIncrements('id');
 
-            $table->string('raw_key',64)->unique();
-            $table->string('key_salt',32);
-            $table->string('key_hash',255)->index();
-
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('product_id')->constrained('products')->onDelete('restrict');
-            $table->foreignId('payment_id')->constrained('payments')->onDelete('cascade');
-            // $table->string('key')->unique();
-
-
+            $table->string('raw_key',64)->unique()->nullable();
             $table->string('activated_domain')->nullable();
-            $table->string('activated_ip')->nullable();
+            $table->string('activated_ip', 100)->nullable();
             $table->boolean('is_activated')->default(false);
-
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->string('product_uuid',150);
+            $table->foreign('product_uuid')->references('uuid')->on('products')->onDelete('restrict');
+            $table->foreignId('payment_id')->constrained('payments')->onDelete('cascade');
             $table->enum('status', ['active', 'revoked', 'expired', 'refunded'])->default('active');
             $table->timestamp('issued_at')->useCurrent();
             $table->timestamps();
+
+            $table->index([
+                'raw_key',
+                'activated_domain',
+                'activated_ip',
+                'is_activated',
+                'status',
+            ], 'license_lookup_idx');
         });
     }
 

@@ -62,6 +62,7 @@ class LicenseVerificationService
         $license = License::with(['payment', 'product','user'])
             ->where([
                 ['raw_key', '=', $licenseKey],
+                ['activated_domain', '=', $domain],
                 ['status', '=', 'active'],
                 ['is_activated', '=', false],
             ])
@@ -112,11 +113,16 @@ class LicenseVerificationService
         return $license;
     }
 
-    public function verifyLicenseCredentials(License $license, string $licenseKey): void
+    public function verifyLicenseCredentials(string $licenseKey, string $domain): void
     {
-        $pepper = config('app.license_pepper');
-        $check = "{$pepper}|{$license->key_salt}|{$licenseKey}";
-        if (!password_verify($check, $license->key_hash)) {
+
+        $isValid = License::where('raw_key', $licenseKey)
+        ->whereRaw('LOWER(activated_domain) = ?', [$domain])
+        ->where('is_activated', 0)
+        ->where('status', 'active')
+        ->exists();
+
+        if (! $isValid) {
            throw new Exception('Invalid license credentials.', 403);
         }
     }
@@ -129,8 +135,6 @@ class LicenseVerificationService
         // Use transaction for safety
         \DB::transaction(function () use ($license, $domain, $ip) {
             $license->update([
-                'activated_domain' => $domain,
-                'activated_ip' => $ip,
                 'is_activated' => true,
             ]);
         });

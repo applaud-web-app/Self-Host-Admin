@@ -65,7 +65,7 @@
                                             <th>Amount</th>
                                             <th>Status</th>
                                             <th>Paid At</th>
-                                            <th>Generate Key</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -82,7 +82,7 @@
         <div class="modal fade" id="generateKey" tabindex="-1" aria-labelledby="generateKeyLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
-                    <form action="{{ route('admin.generate-key.show') }}" method="POST" id="generateKeyForm">
+                    <form action="{{ route('admin.generate-key.show') }}" method="POST" id="generateKeyForm" autocomplete="off">
                         @csrf
                         <div class="modal-header border-0">
                             <h5 class="modal-title" id="generateKeyLabel">Generate Key</h5>
@@ -90,6 +90,7 @@
                         </div>
                         <div class="modal-body">
                             <input type="hidden" name="product_uuid" id="productUuidField">
+                            <input type="hidden" name="licence_id" id="licenceID">
                             <div class="mb-3">
                                 <label for="server_ip" class="form-label">Server IP <span class="text-danger">*</span></label>
                                 <input type="text" name="server_ip" id="server_ip" class="form-control" required>
@@ -151,7 +152,7 @@
                     { data: 'amount' },
                     { data: 'status' },
                     { data: 'paid_at' },
-                    { data: 'generate_key', orderable: false, searchable: false }
+                    { data: 'action', orderable: false, searchable: false }
                 ],
                 order: [[7, 'desc']],
                 language: {
@@ -175,7 +176,9 @@
             // Generate Key button
             $('#payments-table').on('click', '.btn-generate-key', function() {
                 var uuid = $(this).data('uuid');
+                var id = $(this).data('id');
                 $('#productUuidField').val(uuid);
+                $('#licenceID').val(id);
                 var modal = new bootstrap.Modal(document.getElementById('generateKey'));
                 modal.show();
             });
@@ -226,8 +229,34 @@
                     return;
                 }
                 var $btn = $(this).find('button[type="submit"]');
-                $btn.prop('disabled', true)
-                    .html('<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
+                $btn.prop('disabled', true).html('Processing...');
+            });
+        });
+    </script>
+    <script>
+        // Copy Key button
+        $('#payments-table').on('click', '.btn-copy-key', function() {
+            var key = $(this).data('key');
+
+            // Use the Clipboard API to copy
+            navigator.clipboard.writeText(key).then(() => {
+                var $btn = $(this);
+                // give instant feedback
+                $btn
+                .text('Copied!')
+                .removeClass('btn-primary')
+                .addClass('btn-success');
+
+                // revert after 2s
+                setTimeout(() => {
+                    $btn
+                    .text('Copy Key')
+                    .removeClass('btn-success')
+                    .addClass('btn-primary');
+                }, 2000);
+            }).catch(err => {
+                console.error('Copy failed', err);
+                alert('Failed to copy key to clipboard.');
             });
         });
     </script>

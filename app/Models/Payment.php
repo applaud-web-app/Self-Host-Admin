@@ -26,4 +26,9 @@ class Payment extends Model
         return $this->belongsTo(Product::class);
     }
     
+    public function license()
+    {
+        // assumes your licenses table has a payment_id FK
+        return $this->hasOne(License::class);
+    }
 }

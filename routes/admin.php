@@ -34,7 +34,7 @@ Route::prefix('admin')->as('admin.')->middleware('admin')->group( function () {
     
     Route::controller(PaymentController::class)->group(function () {
         Route::get('payment', 'showPayment')->name('payment.show');
-        Route::get('generate-key', 'generateKey')->name('generate-key.show');
+        Route::post('generate-key', 'generateKey')->name('generate-key.show');
     });
 
     Route::controller(UserController::class)->group(function () {

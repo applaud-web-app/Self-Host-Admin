@@ -280,21 +280,18 @@ class AuthController extends Controller
                 'status'              => $razorpayPayment->status === "captured" ? "paid" : $razorpayPayment->status,  // should be “captured”
             ]);
 
-            $raw    = Str::upper(Str::random(32));
-            $salt   = Str::random(16);
-            $pepper = config('app.license_pepper');
+            // $raw    = Str::upper(Str::random(32));
+            // $salt   = Str::random(16);
+            // $pepper = config('app.license_pepper');
 
-            // Argon2ID hash of pepper|salt|rawKey
-            $hashInput = "{$pepper}|{$salt}|{$raw}";
-            $keyHash   = password_hash($hashInput, PASSWORD_ARGON2ID);
+            // // Argon2ID hash of pepper|salt|rawKey
+            // $hashInput = "{$pepper}|{$salt}|{$raw}";
+            // $keyHash   = password_hash($hashInput, PASSWORD_ARGON2ID);
 
             License::create([
                 'user_id'    => $user->id,
-                'product_id' => $product->id,
+                'product_uuid' => $product->uuid,
                 'payment_id' => $paymentModel->id,
-                'raw_key'    => $raw,
-                'key_salt'   => $salt,
-                'key_hash'   => $keyHash,
                 'status'     => 'active',
                 'issued_at'  => now()
             ]);

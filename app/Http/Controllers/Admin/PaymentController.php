@@ -5,52 +5,19 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment;
+use App\Models\License;
 use DataTables;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class PaymentController extends Controller
 {
     public function showPayment(Request $request)
     { 
-        // 1) From the Laravel Request wrapper
-        $fromRequestServer = $request->server('SERVER_ADDR');
-
-        // 2) Directly from the PHP superglobal
-        $fromSuperGlobal   = $_SERVER['SERVER_ADDR'] ?? null;
-
-        // 3) What the OS thinks our hostname is…
-        $hostname          = gethostname();
-        // …and its DNS-resolved IPv4
-        $ipViaDns          = gethostbyname($hostname);
-
-        // 4) Public-facing IP via external service
-        //    (requires allow_url_fopen or use Guzzle/http client instead)
-        try {
-            $publicIp = file_get_contents('https://api.ipify.org');
-        } catch (\Throwable $e) {
-            $publicIp = 'error: '.$e->getMessage();
-        }
-
-        // 5) Client IP sources (e.g. Cloudflare)
-        $cfConnectingIp    = $request->header('CF-Connecting-IP');
-        $clientIp          = $request->getClientIp();
-        $forwardedIp       = $cfConnectingIp ?? $clientIp;
-
-        // Bundle them up and dump
-        $allIps = [
-            'Laravel $request->server("SERVER_ADDR")' => $fromRequestServer,
-            '$_SERVER["SERVER_ADDR"]'                => $fromSuperGlobal,
-            'gethostname()'                          => $hostname,
-            'gethostbyname(hostname)'                => $ipViaDns,
-            'Public IP (ipify)'                      => $publicIp,
-            'CF-Connecting-IP header'                => $cfConnectingIp,
-            'getClientIp()'                          => $clientIp,
-            'Chosen client IP'                       => $forwardedIp,
-        ];
-
-        dd($allIps);
-        
         if ($request->ajax()) {
-            $query = Payment::with(['product:id,name,type,uuid','user:id,email'])
+            $query = Payment::with(['product:id,name,type,uuid','user:id,email','license'])
                 ->when($request->filled('search_term'), function ($q) use ($request) {
                     $term = $request->input('search_term');
                     $q->where('razorpay_order_id', 'like', "%{$term}%")
@@ -74,10 +41,74 @@ class PaymentController extends Controller
                     $class = $row->status==='paid'?'success':'danger';
                     return "<span class='badge badge-{$class}'>".ucfirst($row->status)."</span>";
                 })
-                ->addColumn('generate_key', fn($row) => "<button class='btn btn-sm btn-info btn-generate-key' data-uuid='{$row->product->uuid}'>Generate Key</button>")
-                ->rawColumns(['status','generate_key'])
+                ->addColumn('action', function($row) {
+                    // If there's already a license key, show “Copy Key”
+                    if ($row->license && $row->license->raw_key) {
+                        $key = e($row->license->raw_key);
+                        return "<button
+                                    class='btn btn-sm btn-primary btn-copy-key'
+                                    data-key='{$key}'>
+                                    Copy Key
+                                </button>";
+                    }
+
+                    // Otherwise show “Generate Key”
+                    $uuid = e($row->product->uuid);
+                    $id   = $row->id;
+                    return "<button
+                                class='btn btn-sm btn-info btn-generate-key'
+                                data-uuid='{$uuid}'
+                                data-id='{$row->license->id}'>
+                                Generate Key
+                            </button>";
+                })
+                ->rawColumns(['status','action'])
                 ->toJson();
         }
         return view('admin.payment.show');
     }
+
+    public function generateKey(Request $request)
+    {
+        $data = $request->validate([
+            'licence_id'   => 'required|integer|exists:licenses,id',
+            'product_uuid' => 'required|string',
+            'server_ip'    => 'required|ip',
+            'domain_name'  => 'required|string',
+        ]);
+
+        try {
+            // 1. Find the license or throw a 404
+            $license = License::findOrFail($data['licence_id']);
+
+            // 2. Build payload & HMAC
+            $payload = implode('|', [
+                $data['product_uuid'],
+                $data['server_ip'],
+                $data['domain_name'],
+            ]);
+            $secret = Config::get('licenses.secret');
+            $hmac   = hash_hmac('sha256', $payload, $secret);
+
+            // 3. Truncate & format
+            $short = strtoupper(substr($hmac, 0, 20));
+            $key   = trim(chunk_split($short, 5, '-'), '-');
+
+            // 4. Update the existing license instance
+            $license->update([
+                'activated_ip'     => $data['server_ip'],
+                'activated_domain' => $data['domain_name'],
+                'raw_key'          => $key,
+                'is_activated'     => false,
+            ]);
+
+            return redirect()->back()->with('success','License generated successfully.');
+
+        } catch (ModelNotFoundException $e) {
+            return redirect()->back()->with('error','License not found.');
+        } catch (Throwable $e) {
+            return redirect()->back()->with('error','An internal error occurred. :' . $e->getMessage());
+        }
+    }
+
 }

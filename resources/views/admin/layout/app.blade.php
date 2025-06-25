@@ -231,6 +231,18 @@
             });
         </script>
     @endif
+    
+    @if ($errors->any())
+        @foreach ($errors->all() as $error)
+            <script>
+                iziToast.error({
+                    title: 'Error',
+                    message: '{{ $error }}',
+                    position: 'topRight'
+                });
+            </script>
+        @endforeach
+    @endif
     @stack('scripts')
 </body>
 
