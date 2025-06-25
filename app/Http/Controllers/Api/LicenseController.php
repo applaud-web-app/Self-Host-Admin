@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Exception;
 use Log;
+use App\Models\License;
 
 class LicenseController extends Controller
 {
