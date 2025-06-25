@@ -184,8 +184,8 @@ class LicenseController extends Controller
                 ], 200);
             }
 
-            $domain     = strtolower($request->input('domain'));
-            $licenseKey = $request->input('key');
+            $domain     = strtolower($request->input('n'));
+            $licenseKey = $request->input('y');
 
             // // Build a unique cache key for this domain+licenseKey
             // $cacheKey = "license:valid:{$licenseKey}:{$domain}";
@@ -200,7 +200,7 @@ class LicenseController extends Controller
             // });
 
             $isValid = License::where('raw_key', $licenseKey)
-            ->where('activated_domain', $domain)
+            ->whereRaw('LOWER(activated_domain) = ?', [$domain])
             ->where('is_activated', 1)
             ->where('status', 'active')
             ->exists();
