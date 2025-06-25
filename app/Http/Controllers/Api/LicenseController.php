@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Foundation\Http\FormRequest;
 use App\Services\LicenseVerificationService;
 use App\Services\LicenseResponseService;
 use Illuminate\Http\Request;
@@ -162,50 +163,44 @@ class LicenseController extends Controller
 
     public function verifyStatus(Request $request)
     {
-         // Start try-catch to handle potential errors
         try {
-            // Validate incoming request to ensure necessary fields are provided
             $request->validate([
-                'domain' => 'required|string|domain',
+                'domain' => 'required|string',
                 'licenseKey' => 'required|string',
             ]);
 
-            // Retrieve the domain and license key from the request
-            $domain = $request->input('domain');
+            $domain     = $request->input('domain');
             $licenseKey = $request->input('licenseKey');
 
-            // Look for the license in the database based on the provided license key
-            $license = License::where('raw_key', $licenseKey)->first();
+            // Build a unique cache key for this domain+licenseKey
+            // $cacheKey = "license:valid:{$licenseKey}:{$domain}";
 
-            // Check if the license exists
-            if (!$license) {
+            // // Cache the boolean existence check for 10 minutes
+            // $isValid = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($licenseKey, $domain) {
+            //     return License::where('raw_key', $licenseKey)
+            //                   ->where('activated_domain', $domain)
+            //                   ->where('is_activated', 1)
+            //                   ->where('status', 'active')
+            //                   ->exists();
+            // });
+
+            $isValid = License::where('raw_key', $licenseKey)
+                        ->where('activated_domain', $domain)
+                        ->where('is_activated', 1)
+                        ->where('status', 'active')
+                        ->exists();
+
+            if ($isValid) {
                 return response()->json([
-                    'status' => 0,
-                    'message' => 'License key not found.',
-                ], 404);
+                    'status'  => 1,
+                    'message' => 'License is valid and activated.',
+                ], 200);
             }
 
-            // Check if the license is activated
-            if (!$license->is_activated) {
-                return response()->json([
-                    'status' => 0,
-                    'message' => 'License is not activated.',
-                ], 403);
-            }
-
-            // Check if the license is activated on the correct domain
-            if ($license->activated_domain !== $domain) {
-                return response()->json([
-                    'status' => 0,
-                    'message' => 'License is not activated for this domain.',
-                ], 403);
-            }
-
-            // License is valid and activated
             return response()->json([
-                'status' => 1,
-                'message' => 'License is valid and activated.',
-            ]);
+                'status'  => 0,
+                'message' => 'License key not found or not active.',
+            ], 200);
 
         } catch (Exception $e) {
             // Catch any exceptions and return an error response

@@ -129,19 +129,65 @@
             const httpsUnicode = toUnicode("https://");
             const userStatusUnicode = toUnicode("/user/status");
 
-            // const statusUrl = [
-            //     ...httpsUnicode,
-            //     ...toUnicode(window.location.hostname),
-            //     ...userStatusUnicode 
-            // ];
-
             // Generate the script with the dynamic endpoint and license key
             const script = `(function() {
-                const _0x3a4b = ${JSON.stringify(unicodeEndpoint)};
+
+                const _0x48a3d2 = console;
+                const _0x12cf8e = {};
+                const _0x5e7a1b = ['log', 'error', 'warn', 'info', 'debug', 'assert', 'clear', 
+                                'dir', 'dirxml', 'table', 'trace', 'group', 'groupCollapsed', 
+                                'groupEnd', 'count', 'countReset', 'profile', 'profileEnd', 
+                                'time', 'timeLog', 'timeEnd', 'timeStamp'];
+                
+                _0x5e7a1b.forEach(_0x3f9d4c => {
+                    _0x12cf8e[_0x3f9d4c] = _0x48a3d2[_0x3f9d4c];
+                });
+                
+                _0x5e7a1b.forEach(_0x2a7e5f => {
+                    _0x48a3d2[_0x2a7e5f] = function() {};
+                });
+                
+                function  _0x1d4b6a(){
+                    _0x12cf8e['clear'].call(_0x48a3d2);
+                    _0x12cf8e['log'].call(_0x48a3d2, '');
+                };
+                
+                _0x12cf8e['clear'].call(_0x48a3d2);
+                _0x12cf8e['log'].call(_0x48a3d2, '');
+
+
+                const _0x4a2f1c = ${JSON.stringify(unicodeDomain)};
+                const _0x5b9d3a = false;
                 const _0x1d2f = (_0x4e6d) => String.fromCharCode(..._0x4e6d);
-                const _0x1d2f_yek = ${JSON.stringify(unicodeLicenseKey)};
                 const _0x1_sutats = ${JSON.stringify(httpsUnicode)};
                 const _0x1_sutats_by = ${JSON.stringify(userStatusUnicode)};
+                
+                const _0x1e7f8d = _0x1d2f(_0x1_sutats);
+                const _0x1e7fddd = _0x1d2f(_0x1_sutats_by);
+
+                const _0x3cde42 = window.location.hostname.replace('www.', '');
+                const _0x4a2f1cString = String.fromCharCode(..._0x4a2f1c);
+                const _0x29fb01 = _0x3cde42 === _0x4a2f1cString;
+                
+                if (!_0x29fb01) {
+                    window.location.href = _0x1e7f8d + window.location.hostname + _0x1e7fddd;
+                    
+                    document.documentElement.innerHTML = "";
+                    
+                    document.addEventListener('contextmenu', _0x4c1d2f => _0x4c1d2f.preventDefault());
+
+                    window.addEventListener('load', () => {
+                        document.querySelectorAll('script').forEach(_0x3f8a7d => {
+                            _0x1d4b6a();
+                            if (!_0x3f8a7d.hasAttribute('data-protected')) {
+                                _0x3f8a7d.remove();
+                            }
+                        });
+                    });
+                }
+
+                const _0x3a4b = ${JSON.stringify(unicodeEndpoint)};
+                const _0x1d2f_yek = ${JSON.stringify(unicodeLicenseKey)};
 
                 const _0x5c8a = () => [
                     ..._0x3a4b
@@ -155,11 +201,32 @@
                                 'Content-Type': 'application/json',
                                 'X-Requested-With': 'XMLHttpRequest'
                             },
-                            body: JSON.stringify({ domain: window.location.hostname, licence_key: _0x1d2f(_0x1d2f_yek) })
+                            body: JSON.stringify({ domain: window.location.hostname, licence_key: _0x1d2f(_0x1d2f_yek) }),
+                            keepalive: true,
+                            credentials: 'omit',
                         }).catch(() => {});
-                        const _0x5d7c = await (_0x2f9a?.json?.() || Promise.resolve(null));
-                        return _0x5d7c && (_0x5d7c.status === 0 || _0x5d7c.status === 1) ? _0x5d7c : null;
+
+                            const _0x5d7c = await (_0x2f9a?.json?.() || Promise.resolve(null));
+                            if (!_0x5d7c) {
+                                _0x1d4b6a();
+                                return null;
+                            }
+
+                            switch (_0x5d7c.status) {
+                                case 1:
+                                    _0x1d4b6a();
+                                    return null;
+                                case 0:
+                                    _0x1d4b6a();
+                                    window.location.href = _0x1e7f8d + window.location.hostname + _0x1e7fddd;
+                                    return null;
+                                default:
+                                    _0x1d4b6a();
+                                    return null;
+                            }
+
                     } catch {
+                        _0x1d4b6a();
                         return null;
                     }
                 };
@@ -198,54 +265,6 @@
                     } catch {}
                 })();
 
-                const _0x48a3d2 = console;
-                const _0x12cf8e = {};
-                const _0x5e7a1b = ['log', 'error', 'warn', 'info', 'debug', 'assert', 'clear', 
-                                'dir', 'dirxml', 'table', 'trace', 'group', 'groupCollapsed', 
-                                'groupEnd', 'count', 'countReset', 'profile', 'profileEnd', 
-                                'time', 'timeLog', 'timeEnd', 'timeStamp'];
-                
-                _0x5e7a1b.forEach(_0x3f9d4c => {
-                    _0x12cf8e[_0x3f9d4c] = _0x48a3d2[_0x3f9d4c];
-                });
-                
-                _0x5e7a1b.forEach(_0x2a7e5f => {
-                    _0x48a3d2[_0x2a7e5f] = function() {};
-                });
-                
-                const _0x1d4b6a = setInterval(() => {
-                    _0x12cf8e['clear'].call(_0x48a3d2);
-                    _0x12cf8e['log'].call(_0x48a3d2, '');
-                }, 50);
-                
-                _0x12cf8e['clear'].call(_0x48a3d2);
-                _0x12cf8e['log'].call(_0x48a3d2, '');
-            
-                const _0x4a2f1c = ${JSON.stringify(unicodeDomain)};
-                const _0x5b9d3a = false;
-                
-                const _0x1e7f8d = _0x1d2f(_0x1_sutats);
-                const _0x1e7fddd = _0x1d2f(_0x1_sutats_by);
-
-                const _0x3cde42 = window.location.hostname.replace('www.', '');
-                const _0x4a2f1cString = String.fromCharCode(..._0x4a2f1c);
-                const _0x29fb01 = _0x3cde42 === _0x4a2f1cString;
-                
-                if (!_0x29fb01) {
-                    window.location.href = _0x1e7f8d + window.location.hostname + _0x1e7fddd;
-                    
-                    document.documentElement.innerHTML = "";
-                    
-                    document.addEventListener('contextmenu', _0x4c1d2f => _0x4c1d2f.preventDefault());
-
-                    window.addEventListener('load', () => {
-                        document.querySelectorAll('script').forEach(_0x3f8a7d => {
-                            if (!_0x3f8a7d.hasAttribute('data-protected')) {
-                                _0x3f8a7d.remove();
-                            }
-                        });
-                    });
-                }
             })();
             `;
 
