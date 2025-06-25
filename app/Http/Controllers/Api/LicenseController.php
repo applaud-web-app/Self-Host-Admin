@@ -200,7 +200,7 @@ class LicenseController extends Controller
             // });
 
             $isValid = License::where('raw_key', $licenseKey)
-            ->whereRaw('LOWER(activated_domain) = ?', [$domain])
+            ->where('activated_domain', $domain)
             ->where('is_activated', 1)
             ->where('status', 'active')
             ->exists();
