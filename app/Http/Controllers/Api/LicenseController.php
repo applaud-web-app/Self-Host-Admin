@@ -68,7 +68,8 @@ class LicenseController extends Controller
 
         } catch (ValidationException $e) {
             return $this->responseService->errorResponse(
-                'Validation error: ' . collect($e->errors())->flatten()->join(' '),
+                // 'Validation error: ' . collect($e->errors())->flatten()->join(' '),
+                'Invalid Request Found',
                 422
             );
         } catch (ModelNotFoundException $e) {
@@ -97,7 +98,7 @@ class LicenseController extends Controller
                 'trace' => $e->getTraceAsString(),
             ]);
             return $this->responseService->errorResponse(
-                'An unexpected error occurred. Please try again later. : '. $e->getMessage(),
+                'License verification failed',
                 500
             );
         }
