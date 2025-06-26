@@ -7,9 +7,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Payment;
 use DataTables;
+use App\Services\PDFService;
 
 class PaymentController extends Controller
 {
+    protected $pdfService;
+
+    public function __construct(PDFService $pdfService)
+    {
+        $this->pdfService = $pdfService;
+    }
+
     public function showPayment(Request $request)
     {
         $userId = Auth::id();
@@ -80,6 +88,18 @@ class PaymentController extends Controller
 
         // If not AJAX, just return the view; JS will fetch via AJAX.
         return view('frontend.customer.payment.show');
+    }
+
+    public function generatePdf()
+    {
+        // Sample data to pass to the view
+        $data = [
+            'title' => 'Laravel mPDF Example',
+            'content' => 'This PDF was generated using mPDF in Laravel!'
+        ];
+
+        // Call the PDF service to generate the PDF
+        return $this->pdfService->generatePdf('frontend.customer.payment.invoice', $data);
     }
 
 }

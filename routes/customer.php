@@ -5,6 +5,7 @@ use App\Http\Controllers\Customer\DashboardController;
 use App\Http\Controllers\Customer\ProfileController;
 use App\Http\Controllers\Customer\PaymentController;
 use App\Http\Controllers\Customer\ProductController;
+use App\Services\PDFService;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +33,7 @@ Route::prefix('customer')->as('customer.')->middleware('customer')->group( funct
 
     Route::controller(PaymentController::class)->group(function () {
         Route::get('payment', 'showPayment')->name('payment.show');
+        Route::get('/generate-pdf', 'generatePdf')->name('payment.pdf');
     });
 
     Route::controller(ProductController::class)->group(function () {

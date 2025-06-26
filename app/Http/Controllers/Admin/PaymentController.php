@@ -11,9 +11,17 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 use Throwable;
+use App\Services\PDFService;
 
 class PaymentController extends Controller
 {
+    protected $pdfService;
+
+    public function __construct(PDFService $pdfService)
+    {
+        $this->pdfService = $pdfService;
+    }
+
     public function showPayment(Request $request)
     { 
         if ($request->ajax()) {
@@ -110,5 +118,19 @@ class PaymentController extends Controller
             return redirect()->back()->with('error','An internal error occurred. :' . $e->getMessage());
         }
     }
+
+    
+    public function generatePdf()
+    {
+        // Sample data to pass to the view
+        $data = [
+            'title' => 'Laravel mPDF Example',
+            'content' => 'This PDF was generated using mPDF in Laravel!'
+        ];
+
+        // Call the PDF service to generate the PDF
+        return $this->pdfService->generatePdf('frontend.customer.payment.invoice', $data);
+    }
+
 
 }
