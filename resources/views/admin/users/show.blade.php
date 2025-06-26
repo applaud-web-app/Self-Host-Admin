@@ -19,27 +19,27 @@
             {{-- TABLE --}}
             <div class="row">
                 <div class="col-12">
-   <div class="card h-auto">
-                    <div class="card-body">
-        {{-- FILTER: Single Search --}}
-                <div class="row">
-                    <div class="col-md-5">
-                        <input type="text" id="filter-search" class="form-control"
-                            placeholder="Search by name, email, phone">
-                    </div>
-                    <div class="col-md-5">
-                        <select id="filter-user" class="form-select form-control" style="width: 100%;">
-                            <option value="">All Users</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button id="filter-reset" class="btn btn-secondary w-100">
-                            Reset Filters
-                        </button>
+                    <div class="card h-auto">
+                        <div class="card-body">
+    
+                            <div class="row">
+                                <div class="col-md-5">
+                                    <input type="text" id="filter-search" class="form-control"
+                                        placeholder="Search by name, email, phone">
+                                </div>
+                                <div class="col-md-5">
+                                    <select id="filter-user" class="form-select form-control" style="width: 100%;">
+                                        <option value="">All Users</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <button id="filter-reset" class="btn btn-secondary w-100">
+                                        Reset Filters
+                                    </button>
+                                </div>
+                            </div>
                     </div>
                 </div>
-                </div>
-            </div>
        
                 </div>
                 <div class="col-12">
