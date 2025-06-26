@@ -3,7 +3,7 @@
    <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Aplu Receipt</title>
+      <title>Aplu Self Hosting Invoice</title>
       <style>
          /* Base Styles */
          body {
@@ -18,7 +18,7 @@
             max-width: 800px;
             margin: 20px auto;
             padding: 20px;
-            border: 1px solid #858585;
+            border: 1px solid #616161;
             border-radius: 8px;
          }
 
@@ -50,7 +50,6 @@
          .contact-info {
             width: 50%;
             text-align: left;
-            line-height: 1.5;
          }
          .header-title {
             width: 25%;
@@ -66,7 +65,7 @@
          /* Invoice Details Section */
          .invoice-details {
             margin-bottom: 30px;
-            border-bottom: 2px solid #858585;
+            border-bottom: 2px solid #616161;
          }
          .invoice-block {
             width: 45%;
@@ -74,7 +73,7 @@
             padding: 10px;
          }
          .invoice-block.left {
-            border-right: 2px solid #858585;
+            border-right: 2px solid #616161;
          }
          .invoice-details p {
             margin: 5px 0;
@@ -83,17 +82,16 @@
          /* Bill To Section */
          .heading {
             margin-top: 30px;
-            background: #f4f4f4;
-            padding:  5px 15px;
+            background: #f9f9f9;
+            padding: 5px 15px;
             text-transform: uppercase;
             font-weight: bold;
-            border-radius: 10px;
          }
          .billto {
             margin-top: 10px;
-             padding:  10px 15px;
+            padding: 5px 15px;
             background: #f9f9f9;
-            border-radius: 10px;
+            border-radius: 8px;
          }
          .billto .content p {
             margin: 5px 0;
@@ -108,7 +106,7 @@
          .table th, .table td {
             padding: 12px;
             text-align: left;
-            border: 1px solid #858585;
+            border: 1px solid #616161;
          }
          .table th {
             background: #f4f4f4;
@@ -132,7 +130,7 @@
          .summary .right {
             width: 40%;
             float: right;
-            border-left: 2px solid #858585;
+            border-left: 2px solid #616161;
             padding-left: 20px;
          }
          .summary table {
@@ -199,12 +197,12 @@
                     <tr>
                       <td><b>Invoice Number</b></td>
                       <td>:</td>
-                      <td>INV123456</td>
+                      <td>{{ $invoiceNumber }}</td>
                     </tr>
                     <tr>
                       <td><b>Date</b></td>
                       <td>:</td>
-                      <td>2025-06-26</td>
+                      <td>{{ $invoiceDate }}</td>
                     </tr>
                   </table>
             </div>
@@ -213,7 +211,7 @@
                   <tr>
                      <td>Place of Supply</td>
                      <td>:</td>
-                     <td><b>Uttarakhand</b></td>
+                     <td><b>{{ $placeOfSupply }}</b></td>
                   </tr>
                </table>
             </div>
@@ -225,16 +223,16 @@
          </div>
          <div class="billto clearfix">
             <div class="content">
-               <p><b>John Doe</b></p>
-               <p>john.doe@example.com</p>
-               <p>+91-1234567890</p>
-               <p>123 Main St, Dehradun, Uttarakhand</p>
-               <p>Pan Card : ABCD1234E</p>
-               <p>GST Number : 05ABCDE1234F1Z1</p>
+               <p><b>{{ $billTo['name'] }}</b></p>
+               <p>{{ $billTo['email'] }}</p>
+               <p>{{ $billTo['phone'] }}</p>
+               <p>{{ $billTo['address'] }}</p>
+               <p>Pan Card : {{ $billTo['pan'] }}</p>
+               <p>GST Number : {{ $billTo['gst'] }}</p>
             </div>
          </div>
 
-         <!-- Items Table -->
+         <!-- Items Table (Self Hosting Service) -->
          <table class="table">
             <thead>
                <tr>
@@ -247,14 +245,16 @@
                </tr>
             </thead>
             <tbody>
+               @foreach($items as $item)
                <tr>
                   <td>1</td>
-                  <td><b>Web Development Services (6 Months)</b></td>
-                  <td>998315</td>
-                  <td>₹90.00</td>
-                  <td>₹90.00</td>
-                  <td>₹1000.00</td>
+                  <td><b>{{ $item['description'] }}</b></td>
+                  <td>{{ $item['hsn'] }}</td>
+                  <td>{{ $item['cgst'] }}</td>
+                  <td>{{ $item['sgst'] }}</td>
+                  <td>{{ $item['amount'] }}</td>
                </tr>
+               @endforeach
             </tbody>
          </table>
 
@@ -262,25 +262,21 @@
          <div class="summary clearfix">
             <div class="left">
                <p><strong>Total in Words:</strong></p>
-               <p><b><em class="text-capitalize">Indian Rupee One Thousand Only</em></b></p>
+               <p><b><em class="text-capitalize">{{ $summary['totalWords'] }}</em></b></p>
             </div>
             <div class="right">
                <table>
                   <tr>
-                     <td>Unit Price</td>
-                     <td>₹1000.00</td>
-                  </tr>
-                  <tr>
-                     <td>Subtotal</td>
-                     <td>₹1000.00</td>
+                     <td>Self Hosting Service</td>
+                     <td>{{ $summary['serviceAmount'] }}</td>
                   </tr>
                   <tr>
                      <td>GST (18%)</td>
-                     <td>₹180.00</td>
+                     <td>{{ $summary['gst'] }}</td>
                   </tr>
                   <tr>
                      <td><strong>Total</strong></td>
-                     <td><strong>₹1180.00</strong></td>
+                     <td><strong>{{ $summary['total'] }}</strong></td>
                   </tr>
                </table>
             </div>
@@ -288,7 +284,7 @@
 
          <!-- Note Section -->
          <div class="note">
-            <p><b>Note:</b> Payment is due within 30 days. Please reference the invoice number when making payments.</p>
+               <p><b>Note:</b> Thank you for choosing Aplu Self Hosting Service. We ensure the highest quality hosting with 24/7 support.</p>
          </div>
       </div>
    </body>

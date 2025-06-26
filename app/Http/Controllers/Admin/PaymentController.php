@@ -120,17 +120,42 @@ class PaymentController extends Controller
     }
 
     
-    public function generatePdf()
-    {
-        // Sample data to pass to the view
-        $data = [
-            'title' => 'Laravel mPDF Example',
-            'content' => 'This PDF was generated using mPDF in Laravel!'
-        ];
+  public function generatePdf()
+{
+    // Sample data to pass to the view
+    $data = [
+        'invoiceNumber' => 'INV123456',
+        'invoiceDate' => '2025-06-26',
+        'placeOfSupply' => 'Uttarakhand',
+        'billTo' => [
+            'name' => 'John Doe',
+            'email' => 'john.doe@example.com',
+            'phone' => '+91-1234567890',
+            'address' => '123 Main St, Dehradun, Uttarakhand',
+            'pan' => 'ABCD1234E',
+            'gst' => '05ABCDE1234F1Z1'
+        ],
+        'items' => [
+            [
+                'description' => 'Self Hosting Service',
+                'hsn' => '998315',
+                'cgst' => '₹90.00',
+                'sgst' => '₹90.00',
+                'amount' => '₹1000.00'
+            ]
+        ],
+        'summary' => [
+            'totalWords' => 'Indian Rupee One Thousand Only',
+            'total' => '₹1180.00',
+            'gst' => '₹180.00',
+            'serviceAmount' => '₹1000.00'
+        ]
+    ];
 
-        // Call the PDF service to generate the PDF
-        return $this->pdfService->generatePdf('frontend.customer.payment.invoice', $data);
-    }
+
+    return $this->pdfService->generatePdf('frontend.customer.payment.invoice', $data);
+}
+
 
 
 }
