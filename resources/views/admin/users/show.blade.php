@@ -3,8 +3,8 @@
 @push('styles')
     {{-- DataTables CSS --}}
     <link href="{{ asset('vendor/datatables/css/jquery.dataTables.min.css') }}" rel="stylesheet">
-    {{-- Include Select2 CSS --}}
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link href="{{ asset('vendor/select2/css/select2.min.css') }}" rel="stylesheet">
+    
 @endpush
 
 @section('content')
@@ -38,7 +38,7 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table id="users-table" class="table table-striped table-bordered" style="width:100%">
+                                <table id="users-table" class="table display">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -172,11 +172,10 @@
 @push('scripts')
     {{-- DataTables JS --}}
     <script src="{{ asset('vendor/datatables/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('vendor/select2/js/select2.full.min.js') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
-    {{-- Bootstrap 5 (for modal) --}}
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    {{-- Include Select2 JS --}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+   
 
     <script>
         $(document).ready(function() {
