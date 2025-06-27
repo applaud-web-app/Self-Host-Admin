@@ -15,6 +15,7 @@ Route::controller(AuthController::class)->group(function () {
     // Show the checkout page (GET)
     Route::get('checkout', 'checkout')->name('checkout');
     Route::post('checkout/callback', 'callback')->name('checkout.callback');
+    Route::post('coupon/verify', 'verifyCoupon')->name('coupon.verify');
 
     // NEW: AJAX endpoints to check uniqueness before payment
     Route::post('checkout/check-email', 'checkEmail')->name('checkout.checkEmail');

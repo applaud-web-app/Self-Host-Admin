@@ -13,6 +13,8 @@ class Payment extends Model
         'razorpay_payment_id',
         'razorpay_signature',
         'amount',
+        'coupon_code',
+        'discount_amount',
         'status',
     ];
 
