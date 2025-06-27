@@ -120,41 +120,108 @@ class PaymentController extends Controller
     }
 
     
-  public function generatePdf()
-{
-    // Sample data to pass to the view
-    $data = [
-        'invoiceNumber' => 'INV123456',
-        'invoiceDate' => '2025-06-26',
-        'placeOfSupply' => 'Uttarakhand',
-        'billTo' => [
-            'name' => 'John Doe',
-            'email' => 'john.doe@example.com',
-            'phone' => '+91-1234567890',
-            'address' => '123 Main St, Dehradun, Uttarakhand',
-            'pan' => 'ABCD1234E',
-            'gst' => '05ABCDE1234F1Z1'
-        ],
-        'items' => [
-            [
-                'description' => 'Self Hosting Service',
-                'hsn' => '998315',
-                'cgst' => '₹90.00',
-                'sgst' => '₹90.00',
-                'amount' => '₹1000.00'
+    public function generatePdf()
+    {
+        // Sample data to pass to the view
+        $data = [
+            'invoiceNumber' => 'INV123456',
+            'invoiceDate' => '2025-06-26',
+            'placeOfSupply' => 'Uttarakhand',
+            'billTo' => [
+                'name' => 'John Doe',
+                'email' => 'john.doe@example.com',
+                'phone' => '+91-1234567890',
+                'address' => '123 Main St, Dehradun, Uttarakhand',
+                'pan' => 'ABCD1234E',
+                'gst' => '05ABCDE1234F1Z1'
+            ],
+            'items' => [
+                [
+                    'description' => 'Self Hosting Service',
+                    'hsn' => '998315',
+                    'cgst' => '₹90.00',
+                    'sgst' => '₹90.00',
+                    'amount' => '₹1000.00'
+                ]
+            ],
+            'summary' => [
+                'totalWords' => 'Indian Rupee One Thousand Only',
+                'total' => '₹1180.00',
+                'gst' => '₹180.00',
+                'serviceAmount' => '₹1000.00'
             ]
-        ],
-        'summary' => [
-            'totalWords' => 'Indian Rupee One Thousand Only',
-            'total' => '₹1180.00',
-            'gst' => '₹180.00',
-            'serviceAmount' => '₹1000.00'
-        ]
-    ];
+        ];
+
+        return $this->pdfService->generatePdf('frontend.customer.payment.invoice', $data);
+    }
+
+    public function licenseList(Request $request)
+    {
+        if ($request->ajax()) {
+            $query = License::with(['product:id,name,type,uuid', 'user:id,name,email', 'payment:id,status,amount,razorpay_order_id,created_at'])
+                ->when($request->filled('search_term'), function ($q) use ($request) {
+                    $term = $request->input('search_term');
+                    $q->where('raw_key', 'like', "%{$term}%")
+                    ->orWhereHas('product', function ($q2) use ($term) {
+                        $q2->where('name', 'like', "%{$term}%");
+                    });
+                })
+                ->when($request->filled('user_id'), function ($q) use ($request) {
+                    $q->where('user_id', $request->input('user_id'));
+                })
+                ->when($request->filled('product_type'), function ($q) use ($request) {
+                    $q->whereHas('product', function ($q2) use ($request) {
+                        $q2->where('type', $request->input('product_type'));
+                    });
+                })
+                ->orderBy('issued_at', 'desc');
+
+            return DataTables::eloquent($query)
+                ->addIndexColumn()
+                ->addColumn('payment_details', function ($row) {
+                    $orderId = $row->payment->razorpay_order_id ?? '—';
+                    $paymentStatus = ucfirst($row->payment->status) ?? '—';
+
+                    return "<strong>OID:</strong> {$orderId}<br>
+                        <small class='mt-1 badge badge-" . ($row->payment->status == 'paid' ? 'success' : 'danger') . "'>{$paymentStatus}</small><br>";
+                })
+                ->addColumn('user_info', function ($row) {
+                    $username = $row->user->name ?? '—';
+                    $userEmail = $row->user->email ?? '—';
+                    return "<p class='mb-1'>{$username}</p><small>{$userEmail}</small>";
+                })
+                ->addColumn('product_info', function ($row) {
+                    $productName = $row->product->name ?? '—';
+                    $productType = strtoupper($row->product->type ?? '—');
+                    return "<strong>{$productName}</strong><br><small class='mt-1 badge badge-primary'>{$productType}</small>";
+                })
+                ->addColumn('activation_info', function ($row) {
+                    $activationDomain = $row->activated_domain ?? '—';
+                    $activationIp = $row->activated_ip ?? '—';
+                    $activationStatus = $row->is_activated ? 'Activated' : 'Not Activated';
+                    $activationBadge = $row->is_activated ? 'success' : 'danger';
+
+                    return "<small><strong>Domain:</strong> {$activationDomain} | <strong>SIP:</strong> {$activationIp}</small><br>
+                        <span class='mt-1 badge badge-{$activationBadge}'>{$activationStatus}</span>";
+                })
+                ->addColumn('amount', fn($row) => "₹" . $row->payment->amount ?? '—')
+                ->addColumn('paid_at', fn($row) => $row->payment->created_at ? $row->payment->created_at->format('d M Y, h:i A') : '—')
+                ->addColumn('action', function ($row) {
+                    if ($row->raw_key) {
+                        $key = e($row->raw_key);
+                        return "<button class='btn btn-sm btn-primary btn-copy-key' data-key='{$key}'>Copy Key</button>";
+                    }
+                    $uuid = e($row->product->uuid);
+                    $id   = $row->id;
+                    return "<button class='btn btn-sm btn-info btn-generate-key' data-uuid='{$uuid}' data-id='{$row->id}'>Generate Key</button>";
+                })
+                ->rawColumns(['payment_details','user_info','product_info','activation_info','action'])
+                ->toJson();
+        }
+        return view('admin.license.show');
+    }
 
 
-    return $this->pdfService->generatePdf('frontend.customer.payment.invoice', $data);
-}
 
 
 

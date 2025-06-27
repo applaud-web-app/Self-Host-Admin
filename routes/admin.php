@@ -37,6 +37,7 @@ Route::prefix('admin')->as('admin.')->middleware('admin')->group( function () {
         Route::get('payment', 'showPayment')->name('payment.show');
         Route::post('generate-key', 'generateKey')->name('generate-key.show');
         Route::get('/generate-pdf', 'generatePdf')->name('payment.pdf');
+        Route::get('/license-list', 'licenseList')->name('license.show');
     });
 
     Route::controller(UserController::class)->group(function () {

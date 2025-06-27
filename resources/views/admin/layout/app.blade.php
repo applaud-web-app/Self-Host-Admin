@@ -131,6 +131,14 @@
                             <span class="nav-text">Users</span>
                         </a>
                     </li>
+                    
+                    <!-- License -->
+                    <li>
+                        <a class="ai-icon" href="{{ route('admin.license.show') }}" aria-expanded="false">
+                            <i class="fal fa-credit-card"></i>
+                            <span class="nav-text">License</span>
+                        </a>
+                    </li>
 
                     <!-- Payment -->
                     <li>
