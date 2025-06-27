@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ProfileController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\CouponManagement;
 
 /*
 |--------------------------------------------------------------------------
@@ -53,6 +54,16 @@ Route::prefix('admin')->as('admin.')->middleware('admin')->group( function () {
         Route::get('download-addon/{uuid}', 'downloadAddons')->name('addons.download');
         Route::post('edit-addon/{uuid}', 'editAddons')->name('addons.edit');
         Route::post('addons/delete-zip', 'deleteZip')->name('addons.deleteZip');
+    });
+
+    Route::controller(CouponManagement::class)->group(function () {
+        Route::get('/coupons', 'coupons')->name('coupons.show');
+        Route::get('/add-coupon', 'addCoupon')->name('coupons.add');
+        Route::post('/store-coupon', 'storeCoupon')->name('coupons.store');
+        Route::get('/edit-coupon', 'editCoupon')->name('coupons.edit');
+        Route::post('/update-coupon', 'updateCoupon')->name('coupons.update');
+        Route::post('/check-coupon', 'checkCoupon')->name('coupons.check');
+        Route::get('/remove-coupon', 'removeCoupon')->name('coupons.remove');
     });
 
 });

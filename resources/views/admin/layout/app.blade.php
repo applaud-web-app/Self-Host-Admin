@@ -147,6 +147,13 @@
                         </a>
                     </li>
 
+                    <li>
+                        <a class="ai-icon" href="{{ route('admin.coupons.show') }}" aria-expanded="false">
+                            <i class="fal fa-receipt"></i>
+                            <span class="nav-text">Coupons</span>
+                        </a>
+                    </li>
+
                     <!-- Support -->
                     <li>
                         <a href="https://aplu.io/contact" class="ai-icon" aria-expanded="false">
