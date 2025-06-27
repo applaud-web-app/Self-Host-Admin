@@ -10,6 +10,7 @@
         <div class="container-fluid position-relative">
             <div class="d-flex flex-wrap align-items-center justify-content-between text-head mb-3">
                 <h2 class="me-auto mb-0">Licenses</h2>
+                <a href="{{route('admin.generate-script')}}" class="btn btn-primary" target="_blank"> <i class="fas fa-code me-1"></i> Generate Script</a>
             </div>
 
             <div class="row">

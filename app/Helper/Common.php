@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
+use NumberFormatter\NumberFormatter;
 
 if (! function_exists('encryptUrl')) {
     function encryptUrl($url, $parms)
@@ -35,5 +36,12 @@ if (! function_exists('uploadImage')) {
         $path = $file->storeAs($folder, $filename, $disk);
 
         return $path;
+    }
+}
+
+if (! function_exists('numberToWords')) {
+    function numberToWords($amount, $locale = 'en_US') {
+        $formatter = new \NumberFormatter($locale, \NumberFormatter::SPELLOUT);
+        return ucfirst($formatter->format($amount));
     }
 }

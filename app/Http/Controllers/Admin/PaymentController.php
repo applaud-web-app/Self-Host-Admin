@@ -6,12 +6,15 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\License;
+use App\Models\UserDetail;
 use DataTables;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 use App\Services\PDFService;
+use Carbon\Carbon;
+use Mpdf\Mpdf;
 
 class PaymentController extends Controller
 {
@@ -49,28 +52,35 @@ class PaymentController extends Controller
                     $class = $row->status==='paid'?'success':'danger';
                     return "<span class='badge badge-{$class}'>".ucfirst($row->status)."</span>";
                 })
-                ->addColumn('action', function($row) {
-                    // If there's already a license key, show “Copy Key”
-                    if ($row->license && $row->license->raw_key) {
-                        $key = e($row->license->raw_key);
-                        return "<button
-                                    class='btn btn-sm btn-primary btn-copy-key'
-                                    data-key='{$key}'>
-                                    Copy Key
-                                </button>";
-                    }
-
-                    // Otherwise show “Generate Key”
-                    $uuid = e($row->product->uuid);
-                    $id   = $row->id;
-                    return "<button
-                                class='btn btn-sm btn-info btn-generate-key'
-                                data-uuid='{$uuid}'
-                                data-id='{$row->license->id}'>
-                                Generate Key
-                            </button>";
+                ->addColumn('invoice', function ($row) {
+                    $url = route('admin.payment.invoice');
+                    $param = ['id'=>$row->id];
+                    $invoiceUrl = encryptUrl($url,$param);
+                    // download="invoice.pdf"
+                    return '<a href="'.$invoiceUrl.'" target="_blank" class="text-capitalize badge badge-warning text-white badge-sm generateInvoice">Download</a>';
                 })
-                ->rawColumns(['status','action'])
+                // ->addColumn('action', function($row) {
+                //     // If there's already a license key, show “Copy Key”
+                //     if ($row->license && $row->license->raw_key) {
+                //         $key = e($row->license->raw_key);
+                //         return "<button
+                //                     class='btn btn-sm btn-primary btn-copy-key'
+                //                     data-key='{$key}'>
+                //                     Copy Key
+                //                 </button>";
+                //     }
+
+                //     // Otherwise show “Generate Key”
+                //     $uuid = e($row->product->uuid);
+                //     $id   = $row->id;
+                //     return "<button
+                //                 class='btn btn-sm btn-info btn-generate-key'
+                //                 data-uuid='{$uuid}'
+                //                 data-id='{$row->license->id}'>
+                //                 Generate Key
+                //             </button>";
+                // })
+                ->rawColumns(['status','action','invoice'])
                 ->toJson();
         }
         return view('admin.payment.show');
@@ -117,42 +127,6 @@ class PaymentController extends Controller
         } catch (Throwable $e) {
             return redirect()->back()->with('error','An internal error occurred. :' . $e->getMessage());
         }
-    }
-
-    
-    public function generatePdf()
-    {
-        // Sample data to pass to the view
-        $data = [
-            'invoiceNumber' => 'INV123456',
-            'invoiceDate' => '2025-06-26',
-            'placeOfSupply' => 'Uttarakhand',
-            'billTo' => [
-                'name' => 'John Doe',
-                'email' => 'john.doe@example.com',
-                'phone' => '+91-1234567890',
-                'address' => '123 Main St, Dehradun, Uttarakhand',
-                'pan' => 'ABCD1234E',
-                'gst' => '05ABCDE1234F1Z1'
-            ],
-            'items' => [
-                [
-                    'description' => 'Self Hosting Service',
-                    'hsn' => '998315',
-                    'cgst' => '₹90.00',
-                    'sgst' => '₹90.00',
-                    'amount' => '₹1000.00'
-                ]
-            ],
-            'summary' => [
-                'totalWords' => 'Indian Rupee One Thousand Only',
-                'total' => '₹1180.00',
-                'gst' => '₹180.00',
-                'serviceAmount' => '₹1000.00'
-            ]
-        ];
-
-        return $this->pdfService->generatePdf('frontend.customer.payment.invoice', $data);
     }
 
     public function licenseList(Request $request)
@@ -221,7 +195,99 @@ class PaymentController extends Controller
         return view('admin.license.show');
     }
 
+    public function generateInvoice(Request $request)
+    {
+        // Validate request
+        $request->validate([
+            'eq' => 'required'
+        ]);
 
+        // Decrypt the request parameter
+        $response = decryptUrl($request->eq);
+
+        // Fetch payment details with related user and product data
+        $payment = Payment::with(['user', 'product'])->where('id', $response['id'])->firstOrFail();
+
+        if (!$payment) {
+            abort(404, "Payment record not found.");
+        }
+
+        // Fetch the coupon if provided and stored in the payment record
+        $coupon = null;
+        $discount = $payment->discount_amount ?? 0; // Use the discount stored in the payment record
+        
+        // Fetch the coupon if it was stored in the payment and it's valid
+        if ($payment->coupon_code) {
+            $coupon = Coupon::where('coupon_code', $payment->coupon_code)
+                            ->where('status', 'active')
+                            ->whereDate('expiry_date', '>=', now())
+                            ->first();
+            
+            // If the coupon exists, recalculate the discount (in case of percentage-based discount)
+            if ($coupon) {
+                if ($coupon->discount_type == 'percentage') {
+                    $discount = ($payment->amount * $coupon->discount_amount) / 100;
+                } else {
+                    $discount = $coupon->discount_amount;
+                }
+            }
+        }
+
+        // Fetch user's billing information from UserDetail
+        $userDetail = UserDetail::where('user_id', $payment->user_id)->first();
+
+        // Final calculation (adjust for discount)
+        $totalAmount = $payment->amount - $discount;
+
+        // Prepare invoice data
+        $data = [
+            'invoiceNumber' => $payment->razorpay_order_id, // Using Razorpay order ID as invoice number
+            'invoiceDate' => date('d/m/y', strtotime($payment->created_at)),
+            'billingFrom' => [
+                'email' => $payment->user->email,
+                'phone' => $payment->user->contact_no,
+                'name' => isset($userDetail) ? ($userDetail->billing_name ?? $payment->user->name) : $payment->user->name,
+                'address' => isset($userDetail) 
+                    ? trim(($userDetail->address ?? '') . ' ' . 
+                            ($userDetail->city ?? '') . ' ' . 
+                            ($userDetail->state ?? '') . ' ' . 
+                            ($userDetail->pin_code ?? '')) 
+                    : '',
+                'state' => isset($userDetail) ? ($userDetail->state ?? '') : '',
+                'pan_card' => isset($userDetail) ? ($userDetail->pan_card ?? '') : '',
+                'gst_number' => isset($userDetail) ? ($userDetail->gst_number ?? '') : '',
+            ],
+            'billingTo' => [
+                'name' => 'Applaud Web Media Pvt. Ltd.',
+                'address' => 'Near Indian Overseas Bank Racecourse, Dehradun, Uttarakhand, India 248001',
+            ],
+            'items' => [
+                'description' => $payment->product->name ?? 'Unknown Product',
+                'quantity' => 1,
+                'amount' => $payment->amount,
+                'discount_amount' => $payment->discount_amount,
+                'duration' => "Life Time",
+            ],
+            'coupon' => $coupon ? $coupon->coupon_code : null,
+            'discount' => $discount,
+            'totalAmount' => $totalAmount,
+            'note' => 'Thank you for your payment. If you need to update your payment information, please contact us at info@aplu.com.',
+            'footerMessage' => 'This is an automatically generated payment receipt. If you have any queries, please contact support at info@aplu.com or call us at +91-9874563210.',
+            'companyLogo' => 'https://push.aplu.io/images/logo-main.png',
+        ];
+
+        // Load the invoice HTML view and pass data
+        $html = view('admin.payment.generate-pdf', $data)->render();
+
+        // Create an instance of Mpdf
+        $mpdf = new Mpdf();
+
+        // Write HTML to PDF
+        $mpdf->WriteHTML($html);
+
+        // Output the PDF to the browser
+        return $mpdf->Output('invoice.pdf', 'I');
+    }
 
 
 

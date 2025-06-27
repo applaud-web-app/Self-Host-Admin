@@ -74,7 +74,8 @@
                                             <th>Amount</th>
                                             <th>Status</th>
                                             <th>Paid At</th>
-                                            <th>Action</th>
+                                            <th>Invoice</th>
+                                            {{-- <th>Action</th> --}}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -163,7 +164,8 @@
                     { data: 'amount' },
                     { data: 'status' },
                     { data: 'paid_at' },
-                    { data: 'action', orderable: false, searchable: false }
+                    { data: 'invoice' },
+                    // { data: 'action', orderable: false, searchable: false }
                 ],
                 order: [[7, 'desc']],
                language: {

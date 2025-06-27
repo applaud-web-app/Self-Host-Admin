@@ -16,4 +16,9 @@ class Coupon extends Model
         'description',
         'status'
     ];
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
 }

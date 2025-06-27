@@ -19,6 +19,8 @@ return new class extends Migration
             $table->string('razorpay_payment_id')->unique();
             $table->string('razorpay_signature');
             $table->decimal('amount', 10, 2);
+            $table->string('coupon_code')->nullable();
+            $table->decimal('discount_amount', 10, 2)->default(0);
             $table->string('status', 50)->index();
             $table->timestamps();
 
