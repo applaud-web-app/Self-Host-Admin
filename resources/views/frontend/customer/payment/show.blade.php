@@ -63,6 +63,7 @@
                                             <th>Type</th>
                                             <th>Amount</th>
                                             <th>Status</th>
+                                            <th>Invoice</th>
                                             <th>Paid At</th>
                                         </tr>
                                     </thead>
@@ -125,6 +126,10 @@
                     {
                         data: 'status',
                         name: 'status'
+                    },
+                    {
+                        data: 'invoice',
+                        name: 'invoice'
                     },
                     {
                         data: 'paid_at',

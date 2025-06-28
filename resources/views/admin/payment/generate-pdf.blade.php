@@ -216,8 +216,8 @@
             </div>
          </div>
          @php
-            $subtotal = $totalAmount / 1.18;
-            $finalGst = $totalAmount - $subtotal;
+            $finalGst = $totalAmount * 0.18;
+            $subtotal = $totalAmount - $finalGst;
          @endphp
          <!-- Items Table -->
          <table class="table">
@@ -231,6 +231,13 @@
                   <th style="text-align: center;">Amount</th>
                </tr>
             </thead>
+            @php
+               if($discount > 0){
+                  $gstF = ($subtotal - ($discount ?? 0)) * 0.18;
+               }else{
+                  $gstF = $finalGst;
+               }
+            @endphp
             <tbody>
                <tr>
                   <td>1</td>
@@ -239,8 +246,8 @@
                      <p>Aplu Push Notification Service</p>
                   </td>
                   <td style="text-align: center;">998315</td>
-                  <td style="text-align: center;">{{ "₹".number_format($finalGst/2, 2) }}</td>
-                  <td style="text-align: center;">{{ "₹".number_format($finalGst/2, 2) }}</td>
+                  <td style="text-align: center;">{{ "₹".number_format($gstF/2, 2) }}</td>
+                  <td style="text-align: center;">{{ "₹".number_format($gstF/2, 2) }}</td>
                   <td style="text-align: center;">{{ "₹".number_format($subtotal, 2) }}</td>
                </tr>
             </tbody>
@@ -249,11 +256,15 @@
          <div class="summary clearfix">
             <div class="left">
                <p>Total in words:</p>
-               <p><b><em class="text-capitalize">Indian Rupee {{numberToWords($totalAmount)}} Only</em></b></p>
+               <p><b><em class="text-capitalize">Indian Rupee {{numberToWords($paid_amount)}} Only.</em></b></p>
             </div>
             <div class="right">
                <div style="padding:5px; border-bottom: 1px solid #333;">
                   <table>
+                     <tr>
+                        <td>Unit Amount</td>
+                        <td>{{ "₹".number_format($subtotal,2) }}</td>
+                     </tr>
                      @if (isset($discount) && $discount > 0)
                         <tr>
                            <td>Coupon Discount</td>
@@ -266,11 +277,11 @@
                      </tr>
                      <tr>
                         <td>GST (18%)</td>
-                        <td>{{ "₹".number_format($finalGst, 2) }}</td>
+                        <td>{{ "₹".number_format($gstF, 2) }}</td>
                      </tr>
                      <tr>
                         <td>Total</td>
-                        <td><b>{{ "₹".number_format($totalAmount) }}</b></td>
+                        <td><b>{{ "₹".number_format($paid_amount,2) }}</b></td>
                      </tr>
                   </table>
                </div>

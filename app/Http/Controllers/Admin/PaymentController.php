@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Payment;
 use App\Models\License;
 use App\Models\UserDetail;
+use App\Models\Coupon;
 use DataTables;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -237,7 +238,7 @@ class PaymentController extends Controller
         $userDetail = UserDetail::where('user_id', $payment->user_id)->first();
 
         // Final calculation (adjust for discount)
-        $totalAmount = $payment->amount - $discount;
+        $totalAmount = $payment->product->price;
 
         // Prepare invoice data
         $data = [
@@ -271,6 +272,7 @@ class PaymentController extends Controller
             'coupon' => $coupon ? $coupon->coupon_code : null,
             'discount' => $discount,
             'totalAmount' => $totalAmount,
+            'paid_amount' => $payment->amount,
             'note' => 'Thank you for your payment. If you need to update your payment information, please contact us at info@aplu.com.',
             'footerMessage' => 'This is an automatically generated payment receipt. If you have any queries, please contact support at info@aplu.com or call us at +91-9874563210.',
             'companyLogo' => 'https://push.aplu.io/images/logo-main.png',

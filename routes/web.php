@@ -16,6 +16,7 @@ Route::controller(AuthController::class)->group(function () {
     Route::get('checkout', 'checkout')->name('checkout');
     Route::post('checkout/callback', 'callback')->name('checkout.callback');
     Route::post('coupon/verify', 'verifyCoupon')->name('coupon.verify');
+    Route::post('razorpay/order', 'razorpayOrderCreate')->name('razorpay.order.create');
 
     // NEW: AJAX endpoints to check uniqueness before payment
     Route::post('checkout/check-email', 'checkEmail')->name('checkout.checkEmail');

@@ -163,7 +163,7 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Order ID:</span>
-                        <span class="detail-value">{{ $payment->order_id }}</span>
+                        <span class="detail-value">{{ $payment->razorpay_order_id }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Date:</span>
@@ -171,7 +171,7 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Amount Paid:</span>
-                        <span class="detail-value amount-value">₹{{ number_format($payment->amount / 100, 2) }}</span>
+                        <span class="detail-value amount-value">₹{{ number_format($payment->amount, 2) }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Status:</span>
