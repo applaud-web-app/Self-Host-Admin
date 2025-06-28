@@ -1,104 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('admin.layout.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Domain Verification Script Generator</title>
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('/vendor/bootstrap-daterangepicker/daterangepicker.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.min.css') }}">
+    
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            color: #333;
-        }
-
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input[type="text"],
         textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        textarea {
-            min-height: 150px;
-            font-family: monospace;
-        }
-
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        #generateBtn {
-            margin-top: 20px;
-        }
-
-        .copy-btn {
-            background: #9b59b6;
-            margin-left: 10px;
-        }
-
-        .copy-btn:hover {
-            background: #8e44ad;
+            min-height: 300px !important;
+            font-size: 17px !important;
         }
     </style>
-</head>
+@endpush
+@section('content')
+<section class="content-body">
+    <div class="container-fluid position-relative">
+        <div class="d-flex flex-wrap align-items-center justify-content-between text-head">
+           <h2 class="mb-3 me-auto applaud">Domain Verification Script Generator</h2>
+        </div>
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title fs-20 mb-0">Script Generator</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="form-group mb-3">
+                        <label for="apiEndpoint">Verify API Endpoint:</label>
+                        <input type="text" class="form-control" id="apiEndpoint" value="{{route('api.verify')}}" placeholder="https://yourdomain.com/verify">
+                    </div>
 
-<body>
-    <h1>Domain Verification Script Generator</h1>
+                    <div class="form-group mb-3">
+                        <label for="licenseKey">License Key:</label>
+                        <input type="text" class="form-control" id="licenseKey" placeholder="Your License Key">
+                    </div>
 
-    <div class="form-group">
-        <label for="apiEndpoint">Verify API Endpoint:</label>
-        <input type="text" id="apiEndpoint" value="{{route('api.verify')}}" placeholder="https://yourdomain.com/verify">
+                    <div class="form-group mb-3">
+                        <label for="customerDomain">Customer Domain Name: (without www)</label>
+                        <input type="text" class="form-control" id="customerDomain" placeholder="Your Domain Name">
+                    </div>
+
+                    <div class="form-group mb-3 d-flex justify-content-end gap-2">
+                        <button id="generateBtn" class="btn btn-primary">Generate Script</button>
+                        <button id="copyBtn" class="copy-btn btn btn-secondary" style="display: none;">Copy to Clipboard</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="generatedScript">Generated Script:</label>
+                        <textarea id="generatedScript" class="form-control" rows="5" readonly></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <div class="form-group">
-        <label for="licenseKey">License Key:</label>
-        <input type="text" id="licenseKey" placeholder="Your License Key">
-    </div>
-
-    <div class="form-group">
-        <label for="customerDomain">Customer Domain Name: (without www)</label>
-        <input type="text" id="customerDomain" placeholder="Your Domain Name">
-    </div>
-
-    <button id="generateBtn">Generate Script</button>
-    <button id="copyBtn" class="copy-btn" style="display: none;">Copy to Clipboard</button>
-
-    <div class="form-group">
-        <label for="generatedScript">Generated Script:</label>
-        <textarea id="generatedScript" readonly></textarea>
-    </div>
-
+</section>
+@endsection
+@push('scripts')
     <script>
         // Convert string to Unicode array
         function toUnicode(str) {
@@ -280,6 +235,4 @@
             alert("Script copied to clipboard!");
         });
     </script>
-</body>
-
-</html>
+@endpush
