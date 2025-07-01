@@ -16,6 +16,8 @@ use Razorpay\Api\Api;
 use Illuminate\Support\Facades\Crypt;
 use App\Models\Payment;
 use App\Models\License;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentSuccess;
 
 class ProductController extends Controller
 {
@@ -138,6 +140,7 @@ class ProductController extends Controller
     }
 
     public function paymentCallback(Request $request) {
+
         // Validate incoming request
         $request->validate([
             'razorpay_payment_id' => 'required|string',
@@ -166,7 +169,7 @@ class ProductController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::warning('Razorpay signature verification failed: ' . $e->getMessage());
-            return response()->json(['error' => 'Payment verification failed. Please contact support.'], 400);
+            return redirect()->route('customer.addons.show')->with('error','Payment verification failed. Please contact support.');
         }
 
         // Fetch Razorpay payment details
@@ -174,19 +177,19 @@ class ProductController extends Controller
             $razorpayPayment = $api->payment->fetch($paymentId);
         } catch (\Exception $e) {
             Log::error('Fetching Razorpay payment details failed: ' . $e->getMessage());
-            return response()->json(['error' => 'Unable to retrieve payment details. Contact support.'], 500);
+            return redirect()->route('customer.addons.show')->with('error','Unable to retrieve payment details. Contact support.');
         }
 
         // Ensure the payment is "captured"
         if ($razorpayPayment->status !== 'captured') {
-            return response()->json(['error' => 'Payment was not captured. Status: ' . $razorpayPayment->status], 400);
+            return redirect()->route('customer.addons.show')->with('error','Payment was not captured. Status: ' . $razorpayPayment->status);
         }
 
         // Fetch the product
         $product = Product::where('uuid', $productUuid)->where('status', 1)->first();
         if (!$product) {
             Log::error("Product with UUID {$productUuid} not found or inactive.");
-            return response()->json(['error' => 'Selected product is unavailable. Please contact support.'], 400);
+            return redirect()->route('customer.addons.show')->with('error','Selected product is unavailable. Please contact support.');
         }
 
         // Store payment and license details
@@ -204,33 +207,74 @@ class ProductController extends Controller
                 'status'              => 'paid',
             ]);
 
-            $raw    = Str::upper(Str::random(32));
-            $salt   = Str::random(16);
-            $pepper = config('app.license_pepper');
-
-            // Argon2ID hash of pepper|salt|rawKey
-            $hashInput = "{$pepper}|{$salt}|{$raw}";
-            $keyHash   = password_hash($hashInput, PASSWORD_ARGON2ID);
-
             License::create([
                 'user_id' => Auth::id(),
                 'product_id'  => $product->id,
                 'payment_id'  => $payment->id,
-                'raw_key'    => $raw,
-                'key_salt'   => $salt,
-                'key_hash'   => $keyHash,
                 'status'     => 'active',
                 'issued_at'  => now()
             ]);
 
-            \DB::commit();
+            try {
+                $user = Auth::user(); // $user->email
+                Mail::to($user->email)->send(new PaymentSuccess($user, $product, $payment, $orderId));
+            } catch (\Throwable $th) {
+                Log::error('mail error ' . $th->getMessage());
+            }
 
-            return response()->json(['success' => true, 'message' => 'Payment successful!']);
+            \DB::commit();
+            return redirect()->route('customer.addons.show')->with('success','Payment successful');
         } catch (\Exception $e) {
             \DB::rollBack();
             Log::error('Error saving payment/license: ' . $e->getMessage());
-            return response()->json(['error' => 'Unable to save payment/license details.'], 500);
+            return redirect()->route('customer.addons.show')->with('success','Unable to save payment/license details.');
         }
+    }
+
+    public function showCheckout(Request $request)
+    {
+        try {
+            $response = decryptUrl($request->eq);
+            $requestedUuid = $response['uuid'];
+
+            if ($requestedUuid) {
+                $product = Product::select('price', 'uuid', 'name', 'description', 'icon')
+                    ->where('uuid', $requestedUuid)
+                    ->where('status', 1)
+                    ->where('type', 'addon')
+                    ->firstOrFail();
+
+                // Calculate pricing
+                $total = $product->price;
+                $gstRate = 0.18; // 18 % GST - adjust as needed
+                $gstAmount = $total * $gstRate;
+                $subtotal = $total - $gstAmount;
+
+                return view('frontend.customer.addons.checkout', [
+                    'product' => $product,
+                    'pricing' => [
+                        'subtotal' => $subtotal,
+                        'gst_rate' => $gstRate * 100, // Convert to percentage for display
+                        'gst_amount' => $gstAmount,
+                        'total_amount' => $total,
+                        'currency' => '₹', // or '$' depending on your currency
+                    ],
+                    'support_contact' => [
+                        'email' => 'support@example.com',
+                        'phone' => '+1 (123) 456-7890',
+                    ]
+                ]);
+            }
+        } catch (\Throwable $th) {
+            // Log the error if needed
+            \Log::error('Checkout error: ' . $th->getMessage());
+            
+            // Redirect back with error or to a 404 page
+            return redirect()->back()->with('error', 'Invalid product or checkout link.');
+        }
+
+        // Fallback redirect if no UUID or product found
+        return redirect()->route('home')->with('error', 'Invalid checkout request.');
     }
 
 

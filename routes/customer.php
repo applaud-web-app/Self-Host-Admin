@@ -39,7 +39,8 @@ Route::prefix('customer')->as('customer.')->middleware('customer')->group( funct
 
     Route::controller(ProductController::class)->group(function () {
         Route::get('addons', 'showAddons')->name('addons.show');
-        Route::get('download-addon/{uuid}', 'downloadAddons')->name('addons.download');
+        Route::get('checkout', 'showCheckout')->name('addons.checkout');
+        // Route::get('download-addon/{uuid}', 'downloadAddons')->name('addons.download');
         Route::delete('addon/{uuid}', 'destroy')->name('addon.destroy');
         Route::get('/purchase', 'purchase')->name('addons.purchase');
         Route::post('/payment/callback', 'paymentCallback')->name('addons.callback');

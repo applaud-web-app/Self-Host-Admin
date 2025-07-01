@@ -19,6 +19,8 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Validation\Rule;
 use Razorpay\Api\Api;       
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PaymentSuccess;
 
 class AuthController extends Controller
 {
@@ -118,152 +120,6 @@ class AuthController extends Controller
 
         return view('frontend.auth.checkout', $data);
     }
-
-    // public function callback(Request $request)
-    // {
-    //     // Sanitize phone input
-    //     $request->merge([
-    //         'phone' => preg_replace('/\D+/', '', $request->input('phone'))
-    //     ]);
-
-    //     // Validate incoming data
-    //     $request->validate([
-    //         'name' => 'required|string|max:255',
-    //         'email' => 'required|string|email|max:255|unique:users,email',
-    //         'country_code' => 'required|string|max:5',
-    //         'phone' => [
-    //             'required',
-    //             'string',
-    //             'max:20',
-    //             Rule::unique('users')->where(function ($query) use ($request) {
-    //                 return $query->where('country_code', $request->input('country_code'));
-    //             }),
-    //         ],
-    //         'password' => 'required|string|min:8|confirmed',
-    //         'product_uuid' => 'required|string|exists:products,uuid',
-    //         'razorpay_payment_id' => 'required|string',
-    //         'razorpay_order_id' => 'required|string',
-    //         'razorpay_signature' => 'required|string',
-    //         'billing_name' => 'required|string|max:255',
-    //         'state' => 'required|string|max:100',
-    //         'city' => 'required|string|max:100',
-    //         'pin_code' => 'required|string|min:4|max:10',
-    //         'address' => 'required|string|max:500',
-    //         'pan_card' => 'nullable|string|max:20',
-    //         'gst_number' => 'nullable|string|max:20',
-    //         'coupon_code' => 'nullable|string|max:50',
-    //     ]);
-
-    //     // Process the coupon code if provided
-    //     $couponCode = $request->input('coupon_code');
-    //     $discountAmount = 0;
-    //     $finalAmount = $request->input('amount'); // This should be in paise from Razorpay
-
-    //     if ($couponCode) {
-    //         // Fetch and validate the coupon again (for security)
-    //         $coupon = Coupon::where('coupon_code', $couponCode)
-    //             ->where('status', 1)
-    //             ->where('expiry_date', '>=', now())
-    //             ->first();
-
-    //         if ($coupon) {
-    //             // Calculate the discount
-    //             $discountAmount = $coupon->discount_type === 'percentage'
-    //                 ? ($coupon->discount_amount / 100) * ($finalAmount / 100) // Convert paise to rupees for calculation
-    //                 : $coupon->discount_amount * 100; // Convert rupees to paise
-
-    //             // Ensure discount doesn't exceed the total amount
-    //             $discountAmount = min($discountAmount, $finalAmount);
-    //             $finalAmount = $finalAmount - $discountAmount;
-    //         }
-    //     }
-
-    //     // Verify the Razorpay payment signature
-    //     $razorpayKey = Config::get('services.razorpay.key');
-    //     $razorpaySecret = Config::get('services.razorpay.secret');
-    //     $api = new Api($razorpayKey, $razorpaySecret);
-
-    //     try {
-    //         $api->utility->verifyPaymentSignature([
-    //             'razorpay_order_id' => $request->razorpay_order_id,
-    //             'razorpay_payment_id' => $request->razorpay_payment_id,
-    //             'razorpay_signature' => $request->razorpay_signature
-    //         ]);
-    //     } catch (\Exception $e) {
-    //         return view('frontend.auth.failure', ['error' => 'Payment verification failed.']);
-    //     }
-
-    //     // Fetch the product
-    //     $product = Product::where('uuid', $request->product_uuid)->where('status', 1)->first();
-    //     if (!$product) {
-    //         return view('frontend.auth.failure', ['error' => 'Product not found or inactive.']);
-    //     }
-
-    //     // Now create user, payment, and license
-    //     try {
-    //         \DB::beginTransaction();
-
-    //         // Create the user
-    //         $user = User::create([
-    //             'name' => $request->input('name'),
-    //             'email' => $request->input('email'),
-    //             'phone' => $request->input('phone'),
-    //             'password' => Hash::make($request->input('password')),
-    //             'country_code' => $request->input('country_code')
-    //         ]);
-
-    //         // Insert into user details
-    //         UserDetail::create([
-    //             'user_id' => $user->id,
-    //             'billing_name' => $request->input('billing_name'),
-    //             'state' => $request->input('state'),
-    //             'city' => $request->input('city'),
-    //             'pin_code' => $request->input('pin_code'),
-    //             'address' => $request->input('address'),
-    //             'pan_card' => $request->input('pan_card'),
-    //             'gst_number' => $request->input('gst_number')
-    //         ]);
-
-    //         // Store the payment
-    //         $payment = Payment::create([
-    //             'user_id' => $user->id,
-    //             'product_id' => $product->id,
-    //             'razorpay_order_id' => $request->razorpay_order_id,
-    //             'razorpay_payment_id' => $request->razorpay_payment_id,
-    //             'razorpay_signature' => $request->razorpay_signature,
-    //             'amount' => $finalAmount / 100, // Convert paise to rupees for storage
-    //             'coupon_code' => $couponCode,
-    //             'discount_amount' => $discountAmount / 100, // Convert paise to rupees for storage
-    //             'status' => 'paid'
-    //         ]);
-
-    //         // Create the license
-    //         License::create([
-    //             'user_id' => $user->id,
-    //             'product_id' => $product->id,
-    //             'payment_id' => $payment->id,
-    //             'status' => 'active',
-    //             'issued_at' => now()
-    //         ]);
-
-    //         // Commit the transaction
-    //         \DB::commit();
-
-    //         // Automatically log the user in
-    //         Auth::login($user);
-
-    //         // Show success view
-    //         return view('frontend.auth.success', [
-    //             'user' => $user,
-    //             'payment' => $payment
-    //         ]);
-
-    //     } catch (\Exception $e) {
-    //         \DB::rollBack();
-    //         Log::error('Checkout failed: ' . $e->getMessage());
-    //         return view('frontend.auth.failure', ['error' => 'Failed to process the payment.']);
-    //     }
-    // }
 
     public function callback(Request $request)
     {
@@ -399,6 +255,13 @@ class AuthController extends Controller
                 'status' => 'active',
                 'issued_at' => now()
             ]);
+
+            try {
+                // $user->email
+                Mail::to('tdevansh099@gmail.com')->send(new PaymentSuccess($user, $product, $payment, $request->razorpay_order_id));
+            } catch (\Throwable $th) {
+                Log::error('mail error ' . $th->getMessage());
+            }
 
             \DB::commit();
 
