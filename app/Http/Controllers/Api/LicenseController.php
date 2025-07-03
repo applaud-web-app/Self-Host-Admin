@@ -186,7 +186,13 @@ class LicenseController extends Controller
             }
 
             $domain     = strtolower($request->input('n'));
-            $domain = $domain === "localhost" ? "localhost:8000" : $domain;
+
+            if($domain === "localhost"){
+                return response()->json([
+                    'status'  => 1,
+                    'message' => 'License is valid and activated.',
+                ], 200);
+            }
             $licenseKey = $request->input('y');
 
             // // Build a unique cache key for this domain+licenseKey
