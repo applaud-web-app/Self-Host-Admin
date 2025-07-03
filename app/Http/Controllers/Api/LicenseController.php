@@ -186,6 +186,7 @@ class LicenseController extends Controller
             }
 
             $domain     = strtolower($request->input('n'));
+            $domain = $domain === "localhost" ? "localhost:8000" : $domain;
             $licenseKey = $request->input('y');
 
             // // Build a unique cache key for this domain+licenseKey
