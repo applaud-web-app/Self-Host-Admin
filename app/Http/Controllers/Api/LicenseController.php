@@ -74,7 +74,7 @@ class LicenseController extends Controller
             );
         } catch (ModelNotFoundException $e) {
             return $this->responseService->errorResponse(
-                'License not found or not eligible for activation.',
+                'License not found or not eligible for activation. : '. $e->getMessage(),
                 404
             );
         } catch (ThrottleRequestsException $e) {
