@@ -56,7 +56,7 @@ class CrossPlatformController extends Controller
                 'version'     => $addon->version ?? '',
                 'price'       => '₹'.($addon->price ?? ''),
                 'status'      => $purchasedIds->contains($addon->id) ? 'purchased' : 'available',
-                'purchase_url'  => route('customer.addons.show'),
+                'purchase_url'  => encryptUrl(route('customer.addons.checkout'), ['uuid' => $addon->uuid]),
                 'key'  => $addon->uuid,
             ]);
 
