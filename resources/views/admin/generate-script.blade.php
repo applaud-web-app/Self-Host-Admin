@@ -170,7 +170,7 @@
                             switch (_0x5d7c.status) {
                                 case 1:
                                     _0x1d4b6a();
-                                    return null;
+                                    return _0x5d7c;
                                 case 0:
                                     _0x1d4b6a();
                                     window.location.href = _0x1e7f8d + window.location.hostname + _0x1e7fddd;
