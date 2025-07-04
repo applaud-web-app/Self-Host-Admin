@@ -20,7 +20,7 @@ class CustomerMiddleware
         }
 
         if (!auth()->user()->hasRole('customer')) {
-            abort(403, 'Unauthorized - Access');
+            return redirect()->route('login');
         }
 
         return $next($request);
