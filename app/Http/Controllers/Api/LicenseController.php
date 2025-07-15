@@ -136,12 +136,12 @@ class LicenseController extends Controller
             );
 
             return [
-                "license" => $dataLicense['license'],
+                "license" => $dataLicense['license']['raw_key'],
                 "domain" => $dataLicense['domain']
             ];
 
             // Validate the addon license credentials
-            $this->verificationService->verifyLicenseCredentials($dataLicense['license'], $dataLicense['domain']);
+            $this->verificationService->verifyLicenseCredentials($dataLicense['license']['raw_key'], $dataLicense['domain']);
 
             // Activate the addon license --
             $this->verificationService->activateLicense($dataLicense['license'], $dataLicense['domain'], $ip);
