@@ -57,12 +57,7 @@
             color: var(--primary-color);
         }
 
-        .reset-card {
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border: none;
-        }
-
+       
         .reset-icon {
             font-size: 3rem;
             color: var(--primary-color);
@@ -83,10 +78,6 @@
             height: 100%;
         }
 
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
     </style>
 </head>
 
@@ -119,20 +110,15 @@
 
                         <div class="mb-4">
                             <label for="email" class="form-label">Email Address</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0">
-                                    <i class="fas fa-envelope text-muted"></i>
-                                </span>
-                                <input
+                            <input
                                     type="email"
                                     name="email"
                                     id="email"
-                                    class="form-control border-start-0"
+                                    class="form-control"
                                     value="{{ old('email') }}"
                                     placeholder="Enter your registered email"
                                     required
                                 />
-                            </div>
                             <small class="text-muted">We'll send a password reset link to this email</small>
                         </div>
 

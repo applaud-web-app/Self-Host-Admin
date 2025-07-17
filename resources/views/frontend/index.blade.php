@@ -246,56 +246,62 @@
     <!-- End Features Section -->
 
     <!-- Installation Section -->
-    <section id="services" class="services section">
-      <div class="container section-title" data-aos="fade-up">
-        <h2>Installation</h2>
-        <p>Deploy Aplu in Minutes with Your Preferred Method</p>
-      </div>
-      <div class="container">
-        <div class="row g-3">
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
-            <div class="service-item item-cyan position-relative">
-              <i class="fas fa-docker icon"></i>
-              <div>
-                <h3>Docker Compose</h3>
-                <p>Clone our repo, configure your environment variables, and run <code>docker-compose up -d</code>.</p>
-                <a href="https://github.com/aplu-self-host/aplu#docker-installation" class="read-more stretched-link" target="_blank">View Guide <i class="fas fa-arrow-right ms-1"></i></a>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
-            <div class="service-item item-orange position-relative">
-              <i class="fas fa-cloud-upload-alt icon"></i>
-              <div>
-                <h3>Helm Chart</h3>
-                <p>Use our Helm chart to install on any Kubernetes cluster. Full support for scaling and high availability.</p>
-                <a href="https://github.com/aplu-self-host/aplu-helm-chart" class="read-more stretched-link" target="_blank">Get the Chart <i class="fas fa-arrow-right ms-1"></i></a>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="300">
-            <div class="service-item item-teal position-relative">
-              <i class="fas fa-terminal icon"></i>
-              <div>
-                <h3>Manual Installation</h3>
-                <p>Clone the repository, configure NGINX/Apache, set up PostgreSQL, and start with systemd.</p>
-                <a href="https://github.com/aplu-self-host/aplu#manual-installation" class="read-more stretched-link" target="_blank">Read Docs <i class="fas fa-arrow-right ms-1"></i></a>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400">
-            <div class="service-item item-indigo position-relative">
-              <i class="fas fa-shield-alt icon"></i>
-              <div>
-                <h3>Security Best Practices</h3>
-                <p>Checklist for SSL/TLS, firewalls, env vars, and system updates—lock down your instance.</p>
-                <a href="https://github.com/aplu-self-host/aplu#security" class="read-more stretched-link" target="_blank">Security Guide <i class="fas fa-arrow-right ms-1"></i></a>
-              </div>
-            </div>
+ <!-- Installation Section -->
+<section id="services" class="services section">
+  <div class="container section-title" data-aos="fade-up">
+    <h2>Installation</h2>
+    <p>Get Aplu up and running quickly with your preferred deployment method.</p>
+  </div>
+  <div class="container">
+    <div class="row g-3">
+      <!-- Installation without Docker -->
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="service-item item-cyan position-relative">
+          <i class="fas fa-terminal icon"></i>
+          <div>
+            <h3>Manual Installation</h3>
+            <p>Clone the repository, configure your web server (NGINX/Apache), set up a PostgreSQL database, and start the service with systemd or a similar process manager.</p>
+            <a href="https://github.com/aplu-self-host/aplu#manual-installation" class="read-more stretched-link" target="_blank">View Guide <i class="fas fa-arrow-right ms-1"></i></a>
           </div>
         </div>
       </div>
-    </section>
+      <!-- Kubernetes Installation -->
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="200">
+        <div class="service-item item-orange position-relative">
+          <i class="fas fa-cloud-upload-alt icon"></i>
+          <div>
+            <h3>Kubernetes (Helm Chart)</h3>
+            <p>Install Aplu on any Kubernetes cluster using our Helm chart. This method supports scaling, high availability, and efficient management of resources.</p>
+            <a href="https://github.com/aplu-self-host/aplu-helm-chart" class="read-more stretched-link" target="_blank">Get the Chart <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
+        </div>
+      </div>
+      <!-- Security Setup -->
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="300">
+        <div class="service-item item-teal position-relative">
+          <i class="fas fa-shield-alt icon"></i>
+          <div>
+            <h3>Security Best Practices</h3>
+            <p>Follow our security guide to configure SSL/TLS, firewalls, environment variables, and system updates to lock down your instance.</p>
+            <a href="https://github.com/aplu-self-host/aplu#security" class="read-more stretched-link" target="_blank">Security Guide <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
+        </div>
+      </div>
+      <!-- Cloud Deployment -->
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="400">
+        <div class="service-item item-indigo position-relative">
+          <i class="fas fa-cloud icon"></i>
+          <div>
+            <h3>Cloud Deployment</h3>
+            <p>Deploy Aplu on your preferred cloud platform (AWS, GCP, Azure) for high availability and scalability. Follow our cloud deployment guide for specific steps on setting up your environment.</p>
+            <a href="https://github.com/aplu-self-host/aplu#cloud-deployment" class="read-more stretched-link" target="_blank">View Cloud Guide <i class="fas fa-arrow-right ms-1"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
     <!-- End Installation Section -->
 
     <!-- Pricing Section -->
