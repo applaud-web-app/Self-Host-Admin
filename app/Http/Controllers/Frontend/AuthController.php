@@ -118,9 +118,66 @@ class AuthController extends Controller
     //     return view('frontend.auth.checkout', $data);
     // }
 
+    // NeW
+    // public function checkout(Request $request)
+    // {
+    //     $requestedUuid = $request->input('product_uuid', self::PRODUCT_UUID);
+    //     // Fetch product details (core product)
+    //     $product = Product::select('price', 'uuid', 'name')
+    //                     ->where('uuid', $requestedUuid)
+    //                     ->where('status', 1)
+    //                     ->where('type','core')
+    //                     ->first();
+
+    //     // Check if the product exists
+    //     if (empty($product)) {
+    //         return back()->withErrors('Invalid Request! Please contact site admin');
+    //     }
+
+    //     // Define GST rate (18%)
+    //     $gstRate = 0.18;
+
+    //     // Calculate GST-exclusive base price from the GST-inclusive price
+    //     $basePrice = $product->price / (1 + $gstRate); // GST-exclusive price
+    //     $gstAmount = $product->price - $basePrice;     // GST amount
+
+    //     // Fetch add-ons details
+    //     $addons = Product::select('price', 'icon', 'uuid', 'name')
+    //                     ->where('status', 1)
+    //                     ->where('type', 'addon')
+    //                     ->get();
+
+    //     // Calculate GST for each addon
+    //     $addonsGst = $addons->map(function ($addon) use ($gstRate) {
+    //         $addon->base_price = $addon->price / (1 + $gstRate); // Base price excluding GST
+    //         $addon->gst = $addon->price - $addon->base_price;   // GST amount
+    //         return $addon;
+    //     });
+
+    //     $supportTotalPrice = 5000;
+    //     // Calculate support base price and GST
+    //     $supportBasePrice = $supportTotalPrice / (1 + $gstRate);
+    //     $supportGst = $supportTotalPrice - $supportBasePrice;
+
+    //     $data = [
+    //         'razorpayKey' => config('services.razorpay.key'),
+    //         'product'     => $product,
+    //         'addons'      => $addonsGst,
+    //         'gstRate'     => $gstRate,
+    //         'productGst'  => $gstAmount, // Product GST value
+    //         'basePrice'   => $basePrice, // Base price excluding GST
+    //         'supportBasePrice' => round($supportBasePrice, 2),
+    //         'supportGst' => round($supportGst, 2),
+    //         'supportTotalPrice' => $supportTotalPrice
+    //     ];
+
+    //     return view('frontend.auth.checkout', $data);
+    // }
+
     public function checkout(Request $request)
     {
         $requestedUuid = $request->input('product_uuid', self::PRODUCT_UUID);
+        
         // Fetch product details (core product)
         $product = Product::select('price', 'uuid', 'name')
                         ->where('uuid', $requestedUuid)
@@ -133,41 +190,16 @@ class AuthController extends Controller
             return back()->withErrors('Invalid Request! Please contact site admin');
         }
 
-        // Define GST rate (18%)
-        $gstRate = 0.18;
-
-        // Calculate GST-exclusive base price from the GST-inclusive price
-        $basePrice = $product->price / (1 + $gstRate); // GST-exclusive price
-        $gstAmount = $product->price - $basePrice;     // GST amount
-
         // Fetch add-ons details
         $addons = Product::select('price', 'icon', 'uuid', 'name')
                         ->where('status', 1)
                         ->where('type', 'addon')
                         ->get();
 
-        // Calculate GST for each addon
-        $addonsGst = $addons->map(function ($addon) use ($gstRate) {
-            $addon->base_price = $addon->price / (1 + $gstRate); // Base price excluding GST
-            $addon->gst = $addon->price - $addon->base_price;   // GST amount
-            return $addon;
-        });
-
-        $supportTotalPrice = 5000;
-        // Calculate support base price and GST
-        $supportBasePrice = $supportTotalPrice / (1 + $gstRate);
-        $supportGst = $supportTotalPrice - $supportBasePrice;
-
         $data = [
             'razorpayKey' => config('services.razorpay.key'),
             'product'     => $product,
-            'addons'      => $addonsGst,
-            'gstRate'     => $gstRate,
-            'productGst'  => $gstAmount, // Product GST value
-            'basePrice'   => $basePrice, // Base price excluding GST
-            'supportBasePrice' => round($supportBasePrice, 2),
-            'supportGst' => round($supportGst, 2),
-            'supportTotalPrice' => $supportTotalPrice
+            'addons'      => $addons,
         ];
 
         return view('frontend.auth.checkout', $data);
@@ -449,21 +481,94 @@ class AuthController extends Controller
     //     }
     // }
 
+    // public function verifyCoupon(Request $request)
+    // {
+    //     // Validate the incoming request
+    //     $request->validate([
+    //         'coupon_code' => 'required|string|max:50',
+    //         'amount' => 'required|numeric|min:0',  // Ensure amount is passed
+    //     ]);
+
+    //     try {
+    //         // Fetch the coupon by code and active status
+    //         $coupon = Coupon::where('coupon_code', $request->coupon_code)
+    //             ->where('status', 1)
+    //             ->first();
+
+    //         // Check if the coupon exists
+    //         if (!$coupon) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'The coupon code you entered is invalid or inactive.',
+    //             ], 200);
+    //         }
+
+    //         // Check if the coupon has expired
+    //         if ($coupon->expiry_date && $coupon->expiry_date < now()->toDateString()) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'This coupon has expired.',
+    //             ], 200);
+    //         }
+
+    //         // Check usage limit
+    //         $useCount = Payment::where('coupon_code', $coupon->coupon_code)->count();
+    //         $usageLimit = $coupon->usage_type === 'multiple' ? $coupon->usage_limit : 1;
+
+    //         if ($useCount >= $usageLimit) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'The usage limit for this coupon has been reached.',
+    //             ], 200);
+    //         }
+
+           
+    //         $subtotal = $request->amount;
+    //         $discountAmount = $coupon->discount_amount;
+
+    //         $discountAmount = min($discountAmount, $subtotal);
+    //         $newSubtotal = $subtotal - $discountAmount;
+
+    //         // Check if total becomes zero or negative
+    //         if ($newSubtotal <= 0) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'This coupon is applicable only on purchases above ₹' . $coupon->discount_amount,
+    //             ], 200);
+    //         }
+
+    //         // Return success response
+    //         return response()->json([
+    //             'status' => true,
+    //             'message' => 'Coupon applied successfully!',
+    //             'data' => [
+    //                 'sub_total' => round($subtotal, 2),
+    //                 'discount_amount' => round($discountAmount, 2),
+    //                 'coupon_code' => $coupon->coupon_code
+    //             ],
+    //         ], 200);
+
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'An error occurred while verifying the coupon. Please try again.',
+    //             'error' => $e->getMessage(),
+    //         ], 200);
+    //     }
+    // }
+
     public function verifyCoupon(Request $request)
     {
-        // Validate the incoming request
         $request->validate([
             'coupon_code' => 'required|string|max:50',
-            'amount' => 'required|numeric|min:0',  // Ensure amount is passed
+            'amount' => 'required|numeric|min:0',
         ]);
 
         try {
-            // Fetch the coupon by code and active status
             $coupon = Coupon::where('coupon_code', $request->coupon_code)
                 ->where('status', 1)
                 ->first();
 
-            // Check if the coupon exists
             if (!$coupon) {
                 return response()->json([
                     'status' => false,
@@ -471,7 +576,6 @@ class AuthController extends Controller
                 ], 200);
             }
 
-            // Check if the coupon has expired
             if ($coupon->expiry_date && $coupon->expiry_date < now()->toDateString()) {
                 return response()->json([
                     'status' => false,
@@ -479,7 +583,6 @@ class AuthController extends Controller
                 ], 200);
             }
 
-            // Check usage limit
             $useCount = Payment::where('coupon_code', $coupon->coupon_code)->count();
             $usageLimit = $coupon->usage_type === 'multiple' ? $coupon->usage_limit : 1;
 
@@ -490,27 +593,12 @@ class AuthController extends Controller
                 ], 200);
             }
 
-           
-            $subtotal = $request->amount;
-            $discountAmount = $coupon->discount_amount;
+            $discountAmount = min($coupon->discount_amount, $request->amount);
 
-            $discountAmount = min($discountAmount, $subtotal);
-            $newSubtotal = $subtotal - $discountAmount;
-
-            // Check if total becomes zero or negative
-            if ($newSubtotal <= 0) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'This coupon is applicable only on purchases above ₹' . $coupon->discount_amount,
-                ], 200);
-            }
-
-            // Return success response
             return response()->json([
                 'status' => true,
                 'message' => 'Coupon applied successfully!',
                 'data' => [
-                    'sub_total' => round($subtotal, 2),
                     'discount_amount' => round($discountAmount, 2),
                     'coupon_code' => $coupon->coupon_code
                 ],
@@ -520,17 +608,116 @@ class AuthController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'An error occurred while verifying the coupon. Please try again.',
-                'error' => $e->getMessage(),
             ], 200);
         }
     }
 
+    // public function razorpayOrderCreate(Request $request)
+    // {
+    //     // Define constant for support cost (if not already in config or controller)
+    //     $SUPPORT_COST = 5000;
+
+    //     // Validate required fields from the frontend
+    //     $request->validate([
+    //         'product_uuid' => 'required|exists:products,uuid',
+    //         'addons' => 'array|nullable',
+    //         'support_years' => 'required|integer|min:1|max:10',
+    //         'coupon_code' => 'nullable|string|max:255',
+    //         'frontend_total' => 'required|numeric',
+    //     ]);
+
+    //     try {
+    //         // Fetch product details
+    //         $product = Product::where('uuid', $request->product_uuid)->first();
+            
+    //         // Define GST rate (18%)
+    //         $gstRate = 0.18;
+
+    //         // Calculate GST-exclusive base price from the GST-inclusive price
+    //         $basePrice = $product->price / (1 + $gstRate); // Base price excluding GST
+    //         $gstAmount = $product->price - $basePrice;      // GST amount
+
+    //         // Fetch selected add-ons details (if any)
+    //         $addons = Product::select('price', 'uuid', 'name')
+    //                         ->whereIn('uuid', $request->addons)
+    //                         ->where('status', 1)
+    //                         ->where('type', 'addon')
+    //                         ->get();
+
+    //         // Calculate GST for each addon
+    //         $addonsTotal = 0;
+    //         $addonsGst = 0;
+    //         foreach ($addons as $addon) {
+    //             $addonBasePrice = $addon->price / (1 + $gstRate);
+    //             $addonGst = $addon->price - $addonBasePrice;
+    //             $addonsTotal += $addonBasePrice;
+    //             $addonsGst += $addonGst;
+    //         }
+
+    //         // Calculate support cost based on years, excluding first year
+    //         $supportBasePrice = $SUPPORT_COST / (1 + $gstRate);  // Assuming fixed price for support
+    //         $supportGst = $SUPPORT_COST - $supportBasePrice;     // GST on support
+
+    //         // For the first year, support is free, add support only for additional years
+    //         $totalSupportPrice = 0;
+    //         $totalSupportGst = 0;
+
+    //         if ($request->support_years > 1) {
+    //             $totalSupportPrice = $supportBasePrice * ($request->support_years - 1); // Exclude first year
+    //             $totalSupportGst = $supportGst * ($request->support_years - 1); // Exclude first year
+    //         }
+
+    //         // Apply coupon discount (if applicable)
+    //         $discount = 0;
+    //         if ($request->coupon_code) {
+    //             $coupon = Coupon::where('code', $request->coupon_code)->first();
+    //             if ($coupon) {
+    //                 $discount = min($coupon->discount_amount, $basePrice + $addonsTotal + $totalSupportPrice);
+    //             }
+    //         }
+
+    //         // Calculate final order total (including GST)
+    //         $subtotal = $basePrice + $addonsTotal + $totalSupportPrice;
+    //         $totalGstAmount = $gstAmount + $addonsGst + $totalSupportGst;
+    //         $grandTotal = $subtotal + $totalGstAmount - $discount;
+
+    //         // Compare frontend total with backend total
+    //         if (round($grandTotal, 2) !== round($request->frontend_total, 2)) {
+    //             return response()->json([
+    //                 'status' => false,
+    //                 'message' => 'Total amount mismatch! Please check your order details.' . $grandTotal,
+    //             ], 400);
+    //         }
+
+    //         // Proceed with Razorpay order creation
+    //         $api = new Api(
+    //             config('services.razorpay.key'),
+    //             config('services.razorpay.secret')
+    //         );
+
+    //         $order = $api->order->create([
+    //             'amount' => $grandTotal * 100,  // Razorpay amount is in paise (1 INR = 100 paise)
+    //             'currency' => 'INR',
+    //             'receipt' => 'rcpt_' . time(),
+    //             'payment_capture' => 1, // Automatic payment capture
+    //         ]);
+
+    //         return response()->json([
+    //             'status' => true,
+    //             'order_id' => $order->id,
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         Log::error('Razorpay Order Error: ' . $e->getMessage());
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Payment initialization failed. Please try again later.',
+    //         ], 500);
+    //     }
+    // }
+
     public function razorpayOrderCreate(Request $request)
     {
-        // Define constant for support cost (if not already in config or controller)
-        $SUPPORT_COST = 5000;
-
-        // Validate required fields from the frontend
         $request->validate([
             'product_uuid' => 'required|exists:products,uuid',
             'addons' => 'array|nullable',
@@ -542,77 +729,56 @@ class AuthController extends Controller
         try {
             // Fetch product details
             $product = Product::where('uuid', $request->product_uuid)->first();
-            
-            // Define GST rate (18%)
             $gstRate = 0.18;
-
-            // Calculate GST-exclusive base price from the GST-inclusive price
-            $basePrice = $product->price / (1 + $gstRate); // Base price excluding GST
-            $gstAmount = $product->price - $basePrice;      // GST amount
-
-            // Fetch selected add-ons details (if any)
-            $addons = Product::select('price', 'uuid', 'name')
-                            ->whereIn('uuid', $request->addons)
-                            ->where('status', 1)
-                            ->where('type', 'addon')
-                            ->get();
-
-            // Calculate GST for each addon
+            
+            // Fetch selected add-ons details
             $addonsTotal = 0;
-            $addonsGst = 0;
-            foreach ($addons as $addon) {
-                $addonBasePrice = $addon->price / (1 + $gstRate);
-                $addonGst = $addon->price - $addonBasePrice;
-                $addonsTotal += $addonBasePrice;
-                $addonsGst += $addonGst;
+            if ($request->addons) {
+                $addons = Product::whereIn('uuid', $request->addons)
+                                ->where('status', 1)
+                                ->where('type', 'addon')
+                                ->get();
+                $addonsTotal = $addons->sum('price');
             }
 
-            // Calculate support cost based on years, excluding first year
-            $supportBasePrice = $SUPPORT_COST / (1 + $gstRate);  // Assuming fixed price for support
-            $supportGst = $SUPPORT_COST - $supportBasePrice;     // GST on support
-
-            // For the first year, support is free, add support only for additional years
-            $totalSupportPrice = 0;
-            $totalSupportGst = 0;
-
-            if ($request->support_years > 1) {
-                $totalSupportPrice = $supportBasePrice * ($request->support_years - 1); // Exclude first year
-                $totalSupportGst = $supportGst * ($request->support_years - 1); // Exclude first year
-            }
+            // Calculate support cost (first year free)
+            $supportYears = max($request->support_years - 1, 0);
+            $supportTotal = $supportYears * 5000; // ₹5000 per year (excluding GST)
 
             // Apply coupon discount (if applicable)
             $discount = 0;
             if ($request->coupon_code) {
-                $coupon = Coupon::where('code', $request->coupon_code)->first();
+                $coupon = Coupon::where('coupon_code', $request->coupon_code)->first();
                 if ($coupon) {
-                    $discount = min($coupon->discount_amount, $basePrice + $addonsTotal + $totalSupportPrice);
+                    $subtotal = $product->price + $addonsTotal + $supportTotal;
+                    $discount = min($coupon->discount_amount, $subtotal);
                 }
             }
 
-            // Calculate final order total (including GST)
-            $subtotal = $basePrice + $addonsTotal + $totalSupportPrice;
-            $totalGstAmount = $gstAmount + $addonsGst + $totalSupportGst;
-            $grandTotal = $subtotal + $totalGstAmount - $discount;
+            // Calculate final amounts
+            $subtotal = $product->price + $addonsTotal + $supportTotal - $discount;
+            $gstAmount = $subtotal * $gstRate;
+            $grandTotal = $subtotal + $gstAmount;
 
-            // Compare frontend total with backend total
-            if (round($grandTotal, 2) !== round($request->frontend_total, 2)) {
+            // Verify frontend total matches backend calculation
+            if (abs($grandTotal - $request->frontend_total) > 0.01) {
                 return response()->json([
                     'status' => false,
-                    'message' => 'Total amount mismatch! Please check your order details.' . $grandTotal,
+                    'message' => 'Total amount mismatch! Please refresh and try again.',
                 ], 400);
             }
 
-            // Proceed with Razorpay order creation
+            // Create Razorpay order
             $api = new Api(
                 config('services.razorpay.key'),
                 config('services.razorpay.secret')
             );
 
             $order = $api->order->create([
-                'amount' => $grandTotal * 100,  // Razorpay amount is in paise (1 INR = 100 paise)
+                'amount' => round($grandTotal * 100), // Convert to paise
                 'currency' => 'INR',
                 'receipt' => 'rcpt_' . time(),
-                'payment_capture' => 1, // Automatic payment capture
+                'payment_capture' => 1,
             ]);
 
             return response()->json([

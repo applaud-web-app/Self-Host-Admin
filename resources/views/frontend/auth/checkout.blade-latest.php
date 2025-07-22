@@ -2,7 +2,6 @@
 
 @section('title', 'Checkout | Self Host Aplu')
 
-
 @push('styles')
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@23.3.2/build/css/intlTelInput.css" />
     <style>
@@ -454,7 +453,6 @@ h5::after {
     </style>
 @endpush
 
-
 @section('content')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -600,7 +598,8 @@ h5::after {
                                 <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
                                 <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
                                 <input type="hidden" name="razorpay_signature" id="razorpay_signature">
-                            </div> 
+                            </div>  
+                            <!-- Add this section after the personal support card -->
                             <div class="addon-list coupon-section">
                                 @if(count($addons) > 0)
                                     <div class="addons-section">
@@ -619,7 +618,7 @@ h5::after {
                                                         </div>
                                                         <div>
                                                             <div class="addon-title">{{ $addon->name }}</div>
-                                                            <div class="addon-price">₹{{ number_format($addon->price, 2) }}</div>
+                                                            <div class="addon-price">₹{{ number_format($addon->base_price, 2) }}</div>
                                                         </div>
                                                     </div>
                                                     <div class="form-check">
@@ -652,9 +651,9 @@ h5::after {
                             </div>
 
                             <div class="coupon-section">
-                                <h5>Personal Support</h5><span class="text-primary">₹5,000/year (after 1st year)</span>
+                                <h5>Personal Support</h5><span class="text-primary">₹{{$supportBasePrice}}/year (after 1st year)</span>
                                 <p class="support-description">
-                                    Your purchase includes 1 year of personal support. Add more years now at ₹5,000/year.
+                                    Your purchase includes 1 year of personal support. Add more years now at ₹{{$supportBasePrice}}/year.
                                 </p>
                                 <div class="quantity-selector">
                                     <button type="button" class="quantity-btn" id="decrease-support">-</button>
@@ -717,6 +716,7 @@ h5::after {
                                     <i class="fas fa-spinner fa-spin ms-2"></i>
                                 </span>
                             </button>
+
                         </div>
                     </div>
                 </form>
@@ -724,8 +724,7 @@ h5::after {
         </div>
     </section>
 @endsection
-
-{{-- @push('scripts')
+@push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.3.2/build/js/intlTelInput.min.js"></script>
@@ -841,88 +840,149 @@ h5::after {
 
     // Fetch product pricing data and setup calculations
     document.addEventListener('DOMContentLoaded', function() {
-        const gstRate = 0.18;
-        const supportPricePerYear = 5000; // ₹5000 per year (excluding GST)
+        const basePrice = parseFloat('{{ $basePrice }}');
+        const gstRate = parseFloat('{{ $gstRate }}');
+        const gstAmount = parseFloat('{{ $productGst }}');
+
+        const supportBasePrice = parseFloat('{{ $supportBasePrice }}');
+        const supportGst = parseFloat('{{ $supportGst }}');
+        const supportTotalPrice = parseFloat('{{ $supportTotalPrice }}');
 
         let currentPrices = {
-            coreProduct: parseFloat('{{ $product->price }}'), // Already excluding GST
+            coreProduct: { base: basePrice, gst: gstAmount, total: basePrice + gstAmount },
+            support: { years: 1, base: supportBasePrice, gst: supportGst, total: supportTotalPrice },
             addons: {},
-            supportYears: 1,
-            discount: 0
+            discount: { amount: 0 }
         };
 
-        // Addons data from backend (prices are now GST excluded)
+        // Addons data from backend
         const addonsData = [
             @foreach($addons as $addon)
             {
                 uuid: '{{ $addon->uuid }}',
                 name: '{{ $addon->name }}',
-                price: {{ $addon->price }}, // GST excluded
+                price: {{ $addon->price }},
+                base_price: {{ $addon->base_price }},
+                gst: {{ $addon->gst }}
             },
             @endforeach
         ];
 
-        // Calculate and update all prices
+        // Update the display of prices
+        // function updatePriceDisplays() {
+        //     let addonsTotal = 0;
+        //     let addonsGST = 0;
+        //     if (currentPrices.addons) {
+        //         Object.values(currentPrices.addons).forEach(addon => {
+        //             addonsTotal += addon.base;
+        //             addonsGST += addon.gst;
+        //         });
+        //     }
+
+        //     const supportYears = Math.max(currentPrices.support.years - 1, 0);
+        //     currentPrices.support.base = supportYears * supportBasePrice;
+        //     currentPrices.support.gst = supportYears * supportGst;
+        //     currentPrices.support.total = currentPrices.support.base + currentPrices.support.gst;
+
+        //     // Actual subtotal (before discount)
+        //     const subtotal = currentPrices.coreProduct.base + addonsTotal + currentPrices.support.base;
+
+        //     // Apply discount only in the grand total calculation
+        //     const discountedSubtotal = subtotal - currentPrices.discount.amount;
+
+        //     const totalGstAmount = gstAmount + addonsGST + currentPrices.support.gst;
+        //     const grandTotal = discountedSubtotal + totalGstAmount;
+
+        //     // Update price display values
+        //     $('#core-product-price').text(`₹${currentPrices.coreProduct.base.toFixed(2)}`);
+        //     updateAddonsPriceRows();
+        //     $('#support-price').text(`₹${currentPrices.support.base.toFixed(2)}`);
+        //     $('#sub-total-amount').text(`₹${subtotal.toFixed(2)}`);  // Display actual subtotal (before discount)
+        //     $('#total-gst-amount').text(`₹${totalGstAmount.toFixed(2)}`);
+        //     $('#total-display').text(`₹${grandTotal.toFixed(2)}`);
+        //     $('#button-text').text(`Pay ₹${grandTotal.toFixed(2)}`);
+
+        //     // Update discount row
+        //     $('#discount-amount').text(`-₹${currentPrices.discount.amount.toFixed(2)}`);
+        // }
+
+        let addonsTotal = 0;
+        let addonsGST = 0;
+        // Prepare the payload to send to the backend
+        const razorpayPayload = {
+            product_uuid: '{{ $product->uuid }}',  // Pass the product UUID
+            addons: Object.keys(currentPrices.addons),  // Add-ons selected by the user (their UUIDs)
+            support_years: currentPrices.support.years,  // Number of support years selected
+            coupon_code: $('#coupon-code').val(),  // Coupon code entered by the user (if any)
+            frontend_total: currentPrices.coreProduct.total + addonsTotal + currentPrices.support.total + addonsGST + supportGst - currentPrices.discount.amount  // The frontend total (grand total)
+        };
+
         function updatePriceDisplays() {
-            // Calculate addons total
             let addonsTotal = 0;
-            Object.values(currentPrices.addons).forEach(price => {
-                addonsTotal += price;
-            });
+            let addonsGST = 0;
+            // Calculate total for selected add-ons
+            if (currentPrices.addons) {
+                Object.values(currentPrices.addons).forEach(addon => {
+                    addonsTotal += addon.base;
+                    addonsGST += addon.gst;
+                });
+            }
 
-            // Calculate support total (first year free)
-            const supportYears = Math.max(currentPrices.supportYears - 1, 0);
-            const supportTotal = supportYears * supportPricePerYear;
+            const supportYears = Math.max(currentPrices.support.years - 1, 0);
+            currentPrices.support.base = supportYears * supportBasePrice;
+            currentPrices.support.gst = supportYears * supportGst;
+            currentPrices.support.total = currentPrices.support.base + currentPrices.support.gst;
 
-            // Calculate subtotal (before discount and GST)
-            const subtotal = currentPrices.coreProduct + addonsTotal + supportTotal;
-            
-            // Apply discount
-            const discountedSubtotal = Math.max(subtotal - currentPrices.discount, 0);
-            
-            // Calculate GST (18% of discounted subtotal)
-            const gstAmount = discountedSubtotal * gstRate;
-            
-            // Calculate grand total
-            const grandTotal = discountedSubtotal + gstAmount;
+            // Actual subtotal (before discount)
+            const subtotal = currentPrices.coreProduct.base + addonsTotal + currentPrices.support.base;
 
-            // Update UI
-            $('#core-product-price').text(`₹${currentPrices.coreProduct.toFixed(2)}`);
+            // Apply discount only in the grand total calculation
+            const discountedSubtotal = subtotal - currentPrices.discount.amount;
+
+            const totalGstAmount = gstAmount + addonsGST + currentPrices.support.gst;
+            const grandTotal = discountedSubtotal + totalGstAmount;
+
+            // Update price display values
+            $('#core-product-price').text(`₹${currentPrices.coreProduct.base.toFixed(2)}`);
             updateAddonsPriceRows();
-            $('#support-price').text(`₹${supportTotal.toFixed(2)}`);
-            $('#sub-total-amount').text(`₹${subtotal.toFixed(2)}`);
-            $('#discount-amount').text(`-₹${currentPrices.discount.toFixed(2)}`);
-            $('#total-gst-amount').text(`₹${gstAmount.toFixed(2)}`);
+            $('#support-price').text(`₹${currentPrices.support.base.toFixed(2)}`);
+            $('#sub-total-amount').text(`₹${subtotal.toFixed(2)}`);  // Display actual subtotal (before discount)
+            $('#total-gst-amount').text(`₹${totalGstAmount.toFixed(2)}`);
             $('#total-display').text(`₹${grandTotal.toFixed(2)}`);
             $('#button-text').text(`Pay ₹${grandTotal.toFixed(2)}`);
 
-            // Update razorpay payload
-            razorpayPayload = {
-                product_uuid: '{{ $product->uuid }}',
-                addons: Object.keys(currentPrices.addons),
-                support_years: currentPrices.supportYears,
-                coupon_code: $('#coupon-code').val(),
-                frontend_total: grandTotal
-            };
+            // Update discount row
+            $('#discount-amount').text(`-₹${currentPrices.discount.amount.toFixed(2)}`);
+
+            // Update razorpayPayload with correct totals
+            razorpayPayload.frontend_total = grandTotal;  // Update frontend total correctly
         }
+
+
 
         // Update Addons price rows
         function updateAddonsPriceRows() {
             const container = $('#addons-price-rows');
             container.empty();
 
-            Object.entries(currentPrices.addons).forEach(([uuid, price]) => {
-                const addon = addonsData.find(a => a.uuid === uuid);
-                if (!addon) return;
-                
-                const row = $(`
-                    <div class="d-flex justify-content-between align-items-center w-100">
-                        <span class="item">${addon.name}</span>
-                        <span class="price-with-gst">₹${price.toFixed(2)}</span>
-                    </div>
-                `);
-                container.append(row);
-            });
+            if (currentPrices.addons) {
+                Object.entries(currentPrices.addons).forEach(([uuid, addonData]) => {
+                    const addon = addonsData.find(a => a.uuid === uuid);
+                    if (!addon) return;
+                    const priceExclGST = addonData.base;
+                    const gstValue = addonData.gst;
+                    const formattedPrice = priceExclGST.toFixed(2);
+
+                    const row = $(`
+                        <div class="d-flex justify-content-between align-items-center w-100">
+                            <span class="item">${addon.name}</span>
+                            <span class="price-with-gst">₹${formattedPrice}</span>
+                        </div>
+                    `);
+
+                    container.append(row);
+                });
+            }
         }
 
         // Handle addon selection
@@ -931,8 +991,9 @@ h5::after {
             const isChecked = $(this).is(':checked');
 
             if (isChecked) {
-                const price = addonsData.find(a => a.uuid === addonId).price;
-                currentPrices.addons[addonId] = price;
+                const basePrice = addonsData.find(a => a.uuid === addonId).base_price;
+                const gstValue = addonsData.find(a => a.uuid === addonId).gst;
+                currentPrices.addons[addonId] = { base: basePrice, gst: gstValue, total: basePrice + gstValue };
             } else {
                 delete currentPrices.addons[addonId];
             }
@@ -956,38 +1017,42 @@ h5::after {
         });
 
         $('#support-years').change(function() {
-            currentPrices.supportYears = parseInt($(this).val()) || 1;
+            currentPrices.support.years = parseInt($(this).val()) || 1;
             updatePriceDisplays();
         });
 
         // Apply coupon logic
         $('#apply-coupon').click(function() { 
             const couponCode = $('#coupon-code').val();
-            const subtotal = parseFloat($('#sub-total-amount').text().replace('₹', '').replace(',', ''));
+            const subtotal = parseFloat($('#sub-total-amount').text().replace('₹', '').replace(',', '')); // Grab the subtotal value from the order summary
 
             if (couponCode) {
+                // Apply coupon logic (this would require backend integration)
                 $.ajax({
-                    url: '{{route("coupon.verify")}}',
+                    url: '{{route("coupon.verify")}}',  // Endpoint to apply coupon
                     method: 'POST',
                     data: { 
                         coupon_code: couponCode, 
-                        amount: subtotal
+                        amount: subtotal  // Send the subtotal for discount calculation
                     },
                     success: function(response) {
                         if (response.status) {
-                            currentPrices.discount = response.data.discount_amount;
-                            updatePriceDisplays();
+                            // Update prices based on the discount
+                            currentPrices.discount.amount = response.data.discount_amount;  // Update discount
+                            currentPrices.discount.message = response.message;  // Save message to show after coupon applied
+                            updatePriceDisplays();  // Recalculate and display updated prices
                             
+                            // Optionally, display a coupon applied message
                             $('#coupon-container').append(`<div class="coupon-message">${response.message}</div>`);
                         } else {
-                            alert(response.message);
+                            alert(response.message);  // Handle error
                         }
                     }
                 });
             }
         });
 
-         // Helper function to reset payment button
+        // Helper function to reset payment button
         function resetPaymentButton() {
             isPaymentInProgress = false;
             $('#button-text').text(`Pay ₹${currentPrices.total.toFixed(2)}`);
@@ -995,7 +1060,7 @@ h5::after {
             $('#pay-button').prop('disabled', false);
         }
 
-        // ALL YOUR EXISTING FORM VALIDATION STAYS THE SAME
+        // jQuery Validation
         $("#checkout-form").validate({
             rules: {
                 name: { required: true },
@@ -1152,515 +1217,7 @@ h5::after {
             rzp.open();
         };
 
-        // Initialize prices
-        updatePriceDisplays();
-    });
-    </script>
-@endpush --}}
-@push('scripts')
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@23.3.2/build/js/intlTelInput.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
-    <script>
-    // CSRF Token setup for AJAX
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-
-    // Initialize phone input with intl-tel-input
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize phone input
-        const phoneInput = document.getElementById('phone');
-        const iti = window.intlTelInput(phoneInput, {
-            initialCountry: "in",
-            separateDialCode: true,
-            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.3.2/build/js/utils.js"
-        });
-
-        // Update hidden country fields when country changes
-        phoneInput.addEventListener('countrychange', () => {
-            const countryData = iti.getSelectedCountryData();
-            $('#country_code').val('+' + countryData.dialCode);
-            $('#country').val(countryData.name);
-            loadStates(countryData.name);
-        });
-
-        // State and city dropdown management
-        const stateSelect = document.getElementById('state');
-        const citySelect = document.getElementById('city');
-
-        function loadStates(country, preState = null, preCity = null) {
-            resetSelect(stateSelect, 'Select State');
-            resetSelect(citySelect, 'Select City');
-
-            fetch('https://countriesnow.space/api/v0.1/countries/states', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        country
-                    })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    data.data.states.forEach(s => addOption(stateSelect, s.name));
-                    stateSelect.disabled = false;
-                    if (preState) {
-                        stateSelect.value = preState;
-                        loadCities(country, preState, preCity);
-                    }
-                });
-        }
-
-        function loadCities(country, state, preCity = null) {
-            resetSelect(citySelect, 'Select City');
-
-            fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        country,
-                        state
-                    })
-                })
-                .then(r => r.json())
-                .then(data => {
-                    data.data.forEach(c => addOption(citySelect, c));
-                    citySelect.disabled = false;
-                    if (preCity) citySelect.value = preCity;
-                });
-        }
-
-        function addOption(select, text) {
-            const opt = document.createElement('option');
-            opt.value = opt.textContent = text;
-            select.appendChild(opt);
-        }
-
-        function resetSelect(select, placeholder) {
-            select.innerHTML = `<option value="">${placeholder}</option>`;
-            select.disabled = true;
-        }
-
-        // Initial load for India
-        const initData = iti.getSelectedCountryData();
-        loadStates(initData.name, @json(old('state')), @json(old('city')));
-
-        // State change handler
-        stateSelect.addEventListener('change', () => {
-            loadCities($('#country').val(), stateSelect.value);
-        });
-
-        // Password visibility toggle
-        document.querySelectorAll('.password-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function() {
-                const id = this.getAttribute('data-target');
-                const input = document.getElementById(id);
-                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
-                input.setAttribute('type', type);
-                this.querySelector('i').classList.toggle('fa-eye');
-                this.querySelector('i').classList.toggle('fa-eye-slash');
-            });
-        });
-    });
-
-    // Fetch product pricing data and setup calculations
-    document.addEventListener('DOMContentLoaded', function() {
-        const gstRate = 0.18;
-        const supportPricePerYear = 5000; // ₹5000 per year (excluding GST)
-
-        let currentPrices = {
-            coreProduct: parseFloat('{{ $product->price }}'), // Already excluding GST
-            addons: {},
-            supportYears: 1,
-            discount: 0
-        };
-
-        // Addons data from backend (prices are now GST excluded)
-        const addonsData = [
-            @foreach($addons as $addon)
-            {
-                uuid: '{{ $addon->uuid }}',
-                name: '{{ $addon->name }}',
-                price: {{ $addon->price }}, // GST excluded
-            },
-            @endforeach
-        ];
-
-        // Razorpay variables
-        let razorpayOrderId = null;
-        let razorpayPayload = {};
-        let isPaymentInProgress = false;
-
-        // Calculate and update all prices
-        function updatePriceDisplays() {
-            // Calculate addons total
-            let addonsTotal = 0;
-            Object.values(currentPrices.addons).forEach(price => {
-                addonsTotal += price;
-            });
-
-            // Calculate support total (first year free)
-            const supportYears = Math.max(currentPrices.supportYears - 1, 0);
-            const supportTotal = supportYears * supportPricePerYear;
-
-            // Calculate subtotal (before discount and GST)
-            const subtotal = currentPrices.coreProduct + addonsTotal + supportTotal;
-            
-            // Apply discount
-            const discountedSubtotal = Math.max(subtotal - currentPrices.discount, 0);
-            
-            // Calculate GST (18% of discounted subtotal)
-            const gstAmount = discountedSubtotal * gstRate;
-            
-            // Calculate grand total
-            const grandTotal = discountedSubtotal + gstAmount;
-
-            // Update UI
-            $('#core-product-price').text(`₹${currentPrices.coreProduct.toFixed(2)}`);
-            updateAddonsPriceRows();
-            $('#support-price').text(`₹${supportTotal.toFixed(2)}`);
-            $('#sub-total-amount').text(`₹${subtotal.toFixed(2)}`);
-            $('#discount-amount').text(`-₹${currentPrices.discount.toFixed(2)}`);
-            $('#total-gst-amount').text(`₹${gstAmount.toFixed(2)}`);
-            $('#total-display').text(`₹${grandTotal.toFixed(2)}`);
-            $('#button-text').text(`Pay ₹${grandTotal.toFixed(2)}`);
-
-            // Update razorpay payload
-            razorpayPayload = {
-                product_uuid: '{{ $product->uuid }}',
-                addons: Object.keys(currentPrices.addons),
-                support_years: currentPrices.supportYears,
-                coupon_code: $('#coupon-code').val(),
-                frontend_total: grandTotal
-            };
-        }
-
-        // Update Addons price rows
-        function updateAddonsPriceRows() {
-            const container = $('#addons-price-rows');
-            container.empty();
-
-            Object.entries(currentPrices.addons).forEach(([uuid, price]) => {
-                const addon = addonsData.find(a => a.uuid === uuid);
-                if (!addon) return;
-                
-                const row = $(`
-                    <div class="d-flex justify-content-between align-items-center w-100">
-                        <span class="item">${addon.name}</span>
-                        <span class="price-with-gst">₹${price.toFixed(2)}</span>
-                    </div>
-                `);
-                container.append(row);
-            });
-        }
-
-        // Handle addon selection
-        $(document).on('change', '.addon-checkbox', function() {
-            const addonId = $(this).val();
-            const isChecked = $(this).is(':checked');
-
-            if (isChecked) {
-                const price = addonsData.find(a => a.uuid === addonId).price;
-                currentPrices.addons[addonId] = price;
-            } else {
-                delete currentPrices.addons[addonId];
-            }
-
-            updatePriceDisplays();
-        });
-
-        // Handle support year changes
-        $('#increase-support').click(function() {
-            let value = parseInt($('#support-years').val()) || 1;
-            if (value < 10) {
-                $('#support-years').val(value + 1).trigger('change');
-            }
-        });
-
-        $('#decrease-support').click(function() {
-            let value = parseInt($('#support-years').val()) || 1;
-            if (value > 1) {
-                $('#support-years').val(value - 1).trigger('change');
-            }
-        });
-
-        $('#support-years').change(function() {
-            currentPrices.supportYears = parseInt($(this).val()) || 1;
-            updatePriceDisplays();
-        });
-
-        // Apply coupon logic
-        $('#apply-coupon').click(function() { 
-            const couponCode = $('#coupon-code').val();
-            const subtotal = parseFloat($('#sub-total-amount').text().replace('₹', '').replace(',', ''));
-
-            if (couponCode) {
-                $.ajax({
-                    url: '{{route("coupon.verify")}}',
-                    method: 'POST',
-                    data: { 
-                        coupon_code: couponCode, 
-                        amount: subtotal
-                    },
-                    beforeSend: function() {
-                        $('#apply-coupon').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
-                        // Remove any existing messages
-                        $('.coupon-message').remove();
-                    },
-                    complete: function() {
-                        $('#apply-coupon').prop('disabled', false).text('Apply');
-                    },
-                    success: function(response) {
-                        if (response.status) {
-                            // Valid coupon - apply discount
-                            currentPrices.discount = response.data.discount_amount;
-                            
-                            // Add success message
-                            $('#coupon-container').append(`
-                                <div class="coupon-message alert alert-success">
-                                    ${response.message}
-                                </div>
-                            `);
-                        } else {
-                            // Invalid coupon - reset discount
-                            currentPrices.discount = 0;
-                            
-                            // Add error message
-                            $('#coupon-container').append(`
-                                <div class="coupon-message alert alert-danger">
-                                    ${response.message}
-                                </div>
-                            `);
-                        }
-                        
-                        // Update prices in both cases
-                        updatePriceDisplays();
-                    },
-                    error: function() {
-                        // Reset discount on error
-                        currentPrices.discount = 0;
-                        updatePriceDisplays();
-                        
-                        // Add error message
-                        $('#coupon-container').append(`
-                            <div class="coupon-message alert alert-danger">
-                                Failed to verify coupon. Please try again.
-                            </div>
-                        `);
-                    }
-                });
-            } else {
-                // If no coupon code entered, reset discount
-                currentPrices.discount = 0;
-                updatePriceDisplays();
-                
-                // Remove any existing messages
-                $('.coupon-message').remove();
-            }
-        });
-
-        // Helper function to reset payment button
-        function resetPaymentButton() {
-            isPaymentInProgress = false;
-            $('#button-spinner').hide();
-            $('#button-text').text(`Pay ₹${$('#total-display').text().replace('₹', '')}`);
-            $('#pay-button').prop('disabled', false);
-        }
-
-        // Show error message
-        function showErrorMessage(message) {
-            // Remove any existing error messages
-            $('.payment-error-message').remove();
-            
-            // Add error message above the pay button
-            $('.price-summary').append(`
-                <div class="payment-error-message alert alert-danger mt-3">
-                    ${message}
-                </div>
-            `);
-        }
-
-        // Form validation
-        $("#checkout-form").validate({
-            rules: {
-                name: { required: true },
-                email: {
-                    required: true,
-                    email: true,
-                    maxlength: 255,
-                    remote: {
-                        url: "{{ route('checkout.checkEmail') }}",
-                        type: "post",
-                        data: {
-                            email: () => $('#email').val()
-                        }
-                    }
-                },
-                phone: {
-                    required: true,
-                    minlength: 6,
-                    normalizer: function(value) {
-                        return value.replace(/[^\d]/g, '');
-                    },
-                    maxlength: 20,
-                    digits: true,
-                    remote: {
-                        url: "{{ route('checkout.checkPhone') }}",
-                        type: "post",
-                        data: {
-                            country_code: () => $('#country_code').val(),
-                            phone: () => $('#phone').val().replace(/[^\d]/g, '')
-                        }
-                    }
-                },
-                password: { required: true, minlength: 6 },
-                password_confirmation: { required: true, equalTo: "#password" },
-                billing_name: { required: true },
-                state: { required: true },
-                city: { required: true },
-                pin_code: { required: true, digits: true, minlength: 6, maxlength: 6 },
-                address: { required: true }
-            },
-            messages: {
-                name: { required: "Please enter your name." },
-                email: { required: "Please enter your email.", email: "Please enter a valid email." , remote: 'This email is already taken.'},
-                phone: { required: "Please enter your phone number.", remote: 'This phone number is already registered.' },
-                password: { required: "Please create a password.", minlength: "Password must be at least 6 characters." },
-                password_confirmation: { required: "Please confirm your password.", equalTo: "Passwords do not match." },
-                billing_name: { required: "Please enter your billing name." },
-                state: { required: "Please select your state." },
-                city: { required: "Please select your city." },
-                pin_code: { required: "Pin code required.", digits: "Only numbers.", minlength: "6 digits only." },
-                address: { required: "Please enter your address." }
-            },
-            submitHandler: function(form, event) {
-                event.preventDefault();
-                
-                // If payment is already in progress, do nothing
-                if (isPaymentInProgress) return;
-                
-                // Set payment in progress
-                isPaymentInProgress = true;
-                $('#pay-button').prop('disabled', true);
-                $('#button-text').text('Processing...');
-                $('#button-spinner').show();
-                
-                // Remove any existing error messages
-                $('.payment-error-message').remove();
-                
-                // Create Razorpay order
-                createRazorpayOrder()
-                    .then(() => {
-                        // Launch Razorpay payment
-                        launchRazorpay();
-                    })
-                    .catch(error => {
-                        console.error('Payment error:', error);
-                        showErrorMessage(error.message || 'Failed to initiate payment. Please try again.');
-                        resetPaymentButton();
-                    });
-            }
-        });
-
-        // Create Razorpay order
-        async function createRazorpayOrder() {
-            try {
-                const response = await fetch("{{ route('razorpay.order.create') }}", {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': "{{ csrf_token() }}"
-                    },
-                    body: JSON.stringify(razorpayPayload)
-                });
-
-                const data = await response.json();
-
-                if (!response.ok || !data.status || !data.order_id) {
-                    throw new Error(data.message || 'Failed to create payment order');
-                }
-
-                razorpayOrderId = data.order_id;
-                return data;
-
-            } catch (error) {
-                console.error('Order creation failed:', error);
-                throw error;
-            }
-        }
-
-        // Launch Razorpay payment
-        window.launchRazorpay = function() {
-            if (!razorpayOrderId) {
-                console.error('Razorpay order ID is missing');
-                showErrorMessage('Payment initialization failed. Please try again.');
-                resetPaymentButton();
-                return;
-            }
-
-            const options = {
-                key: "{{ config('services.razorpay.key') }}",
-                amount: Math.round(parseFloat($('#total-display').text().replace('₹', '')) * 100),
-                currency: "INR",
-                name: "Aplu",
-                description: "Payment for {{ $product->name }}",
-                order_id: razorpayOrderId,
-                handler: function(response) {
-                    console.log('Payment successful:', response);
-
-                    // Set the payment details
-                    $('#razorpay_payment_id').val(response.razorpay_payment_id);
-                    $('#razorpay_order_id').val(response.razorpay_order_id);
-                    $('#razorpay_signature').val(response.razorpay_signature);
-
-                    // Update button text
-                    $('#button-text').text('Completing Payment...');
-                    $('#button-spinner').show();
-
-                    // Submit the form with payment data
-                    $('#checkout-form')[0].submit();
-                },
-                prefill: {
-                    name: $('#name').val(),
-                    email: $('#email').val(),
-                    contact: $('#phone').val()
-                },
-                theme: {
-                    color: "#F37254"
-                },
-                modal: {
-                    ondismiss: function() {
-                        console.log('Payment modal dismissed');
-                        showErrorMessage('Payment was cancelled. Please try again if you wish to proceed.');
-                        resetPaymentButton();
-                        // Optional: Reload page after 3 seconds
-                        setTimeout(() => location.reload(), 3000);
-                    }
-                }
-            };
-
-            const rzp = new Razorpay(options);
-
-            // Handle payment failure
-            rzp.on('payment.failed', function(response) {
-                console.error('Payment failed:', response.error);
-                showErrorMessage('Payment failed: ' + (response.error.description || 'Unknown error'));
-                resetPaymentButton();
-                // Optional: Reload page after 3 seconds
-                setTimeout(() => location.reload(), 3000);
-            });
-
-            rzp.open();
-        };
-
-        // Initialize prices
+        // Initialize prices and displays
         updatePriceDisplays();
     });
     </script>
