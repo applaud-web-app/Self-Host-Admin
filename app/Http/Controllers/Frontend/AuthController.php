@@ -727,12 +727,14 @@ class AuthController extends Controller
                 'support_yearly_price' => self::SUPPORT_PRICE,
                 'metadata' => json_encode([
                     'product_price' => $productCost,
-                    'addons_price' => $addonsCost,
+                    'addons' => $addons->mapWithKeys(function ($addon) {
+                        return [$addon->name => $addon->price];
+                    }),
+                    'support_year' => $supportYears,
                     'support_price' => $supportCost,
-                    'gst_amount' => $gstAmount,
-                    'subtotal' => $subtotal + $discountAmount,
+                    'coupon_discount' => $discountAmount,
                 ]),
-                'is_grouped' => 0
+                'is_grouped' => 0 // Mark as not grouped for the core product
             ]);
 
             // Create licenses for the core product
@@ -755,6 +757,11 @@ class AuthController extends Controller
                     'amount' => $addon->price,
                     'status' => 'paid',
                     'is_grouped' => $corePayment->id,
+                    'metadata' => json_encode([
+                        'addon_name' => $addon->name,
+                        'addon_price' => $addon->price,
+                        'addon_gst' => $addon->price * 0.18
+                    ]),
                 ]);
 
                 License::create([

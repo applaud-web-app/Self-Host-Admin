@@ -118,7 +118,102 @@ class PaymentController extends Controller
 
     
 
-    public function generateInvoice(Request $request)
+    // public function generateInvoice(Request $request)
+    // {
+    //     // Validate request
+    //     $request->validate([
+    //         'eq' => 'required'
+    //     ]);
+
+    //     // Decrypt the request parameter
+    //     $response = decryptUrl($request->eq);
+
+    //     // Fetch payment details with related user and product data
+    //     $payment = Payment::with(['user', 'product'])->where('id', $response['id'])->firstOrFail();
+
+    //     if (!$payment) {
+    //         abort(404, "Payment record not found.");
+    //     }
+
+    //     // Fetch the coupon if provided and stored in the payment record
+    //     $coupon = null;
+    //     $discount = $payment->discount_amount ?? 0; // Use the discount stored in the payment record
+        
+    //     // Fetch the coupon if it was stored in the payment and it's valid
+    //     if ($payment->coupon_code) {
+    //         $coupon = Coupon::where('coupon_code', $payment->coupon_code)
+    //                         ->where('status', 'active')
+    //                         ->whereDate('expiry_date', '>=', now())
+    //                         ->first();
+            
+    //         // If the coupon exists, recalculate the discount (in case of percentage-based discount)
+    //         if ($coupon) {
+    //             if ($coupon->discount_type == 'percentage') {
+    //                 $discount = ($payment->amount * $coupon->discount_amount) / 100;
+    //             } else {
+    //                 $discount = $coupon->discount_amount;
+    //             }
+    //         }
+    //     }
+
+    //     // Fetch user's billing information from UserDetail
+    //     $userDetail = UserDetail::where('user_id', $payment->user_id)->first();
+
+    //     // Final calculation (adjust for discount)
+    //     $totalAmount = $payment->product->price;
+
+    //     // Prepare invoice data
+    //     $data = [
+    //         'invoiceNumber' => $payment->razorpay_order_id, // Using Razorpay order ID as invoice number
+    //         'invoiceDate' => date('d/m/y', strtotime($payment->created_at)),
+    //         'billingFrom' => [
+    //             'email' => $payment->user->email,
+    //             'phone' => $payment->user->contact_no,
+    //             'name' => isset($userDetail) ? ($userDetail->billing_name ?? $payment->user->name) : $payment->user->name,
+    //             'address' => isset($userDetail) 
+    //                 ? trim(($userDetail->address ?? '') . ' ' . 
+    //                         ($userDetail->city ?? '') . ' ' . 
+    //                         ($userDetail->state ?? '') . ' ' . 
+    //                         ($userDetail->pin_code ?? '')) 
+    //                 : '',
+    //             'state' => isset($userDetail) ? ($userDetail->state ?? '') : '',
+    //             'pan_card' => isset($userDetail) ? ($userDetail->pan_card ?? '') : '',
+    //             'gst_number' => isset($userDetail) ? ($userDetail->gst_number ?? '') : '',
+    //         ],
+    //         'billingTo' => [
+    //             'name' => 'Applaud Web Media Pvt. Ltd.',
+    //             'address' => 'Near Indian Overseas Bank Racecourse, Dehradun, Uttarakhand, India 248001',
+    //         ],
+    //         'items' => [
+    //             'description' => $payment->product->name ?? 'Unknown Product',
+    //             'quantity' => 1,
+    //             'amount' => $payment->amount,
+    //             'discount_amount' => $payment->discount_amount,
+    //             'duration' => "Life Time",
+    //         ],
+    //         'coupon' => $coupon ? $coupon->coupon_code : null,
+    //         'discount' => $discount,
+    //         'totalAmount' => $totalAmount,
+    //         'paid_amount' => $payment->amount,
+    //         'note' => 'Thank you for your payment. If you need to update your payment information, please contact us at info@aplu.com.',
+    //         'footerMessage' => 'This is an automatically generated payment receipt. If you have any queries, please contact support at info@aplu.com or call us at +91-9874563210.',
+    //         'companyLogo' => 'https://push.aplu.io/images/logo-main.png',
+    //     ];
+
+    //     // Load the invoice HTML view and pass data
+    //     $html = view('admin.payment.generate-pdf', $data)->render();
+
+    //     // Create an instance of Mpdf
+    //     $mpdf = new Mpdf();
+
+    //     // Write HTML to PDF
+    //     $mpdf->WriteHTML($html);
+
+    //     // Output the PDF to the browser
+    //     return $mpdf->Output('invoice.pdf', 'I');
+    // }
+
+   public function generateInvoice(Request $request)
     {
         // Validate request
         $request->validate([
@@ -135,36 +230,63 @@ class PaymentController extends Controller
             abort(404, "Payment record not found.");
         }
 
-        // Fetch the coupon if provided and stored in the payment record
-        $coupon = null;
-        $discount = $payment->discount_amount ?? 0; // Use the discount stored in the payment record
+        // Decode metadata
+        $metadata = json_decode($payment->metadata, true);
         
-        // Fetch the coupon if it was stored in the payment and it's valid
+        // Core product price from metadata (should be used instead of product->price)
+        $corePrice = $metadata['product_price'] ?? $payment->product->price;
+        
+        // Addons from metadata
+        $addons = collect($metadata['addons'] ?? []);
+        $addonsTotal = $addons->sum(function($price) {
+            return is_numeric($price) ? $price : 0;
+        });
+        
+        // Support calculations
+        $supportPrice = 0;
+        if (isset($metadata['support_year']) && $metadata['support_year'] > 1) {
+            // Only charge for additional years beyond the first (which is free)
+            $supportPrice = ($metadata['support_price'] ?? 0) * ($metadata['support_year'] - 1);
+        }
+
+        // Subtotal (product + addons + additional support years)
+        $subtotal = $corePrice + $addonsTotal + $supportPrice;
+
+        // Discount calculation
+        $discount = $metadata['coupon_discount'] ?? 0;
+        
+        // Apply coupon if exists (this will override the metadata discount if coupon is valid)
         if ($payment->coupon_code) {
             $coupon = Coupon::where('coupon_code', $payment->coupon_code)
                             ->where('status', 'active')
                             ->whereDate('expiry_date', '>=', now())
                             ->first();
-            
-            // If the coupon exists, recalculate the discount (in case of percentage-based discount)
+
             if ($coupon) {
                 if ($coupon->discount_type == 'percentage') {
-                    $discount = ($payment->amount * $coupon->discount_amount) / 100;
+                    $discount = ($subtotal * $coupon->discount_amount) / 100;
                 } else {
                     $discount = $coupon->discount_amount;
                 }
             }
         }
 
+        // Subtotal after discount
+        $subtotalAfterDiscount = $subtotal - $discount;
+        if ($subtotalAfterDiscount < 0) $subtotalAfterDiscount = 0; // prevent negative values
+
+        // GST Calculation (18%)
+        $gstAmount = $subtotalAfterDiscount * 0.18;
+
+        // Final total amount (subtotal after discount + GST)
+        $totalAmount = $subtotalAfterDiscount + $gstAmount;
+
         // Fetch user's billing information from UserDetail
         $userDetail = UserDetail::where('user_id', $payment->user_id)->first();
 
-        // Final calculation (adjust for discount)
-        $totalAmount = $payment->product->price;
-
         // Prepare invoice data
         $data = [
-            'invoiceNumber' => $payment->razorpay_order_id, // Using Razorpay order ID as invoice number
+            'invoiceNumber' => $payment->razorpay_order_id,
             'invoiceDate' => date('d/m/y', strtotime($payment->created_at)),
             'billingFrom' => [
                 'email' => $payment->user->email,
@@ -184,24 +306,30 @@ class PaymentController extends Controller
                 'name' => 'Applaud Web Media Pvt. Ltd.',
                 'address' => 'Near Indian Overseas Bank Racecourse, Dehradun, Uttarakhand, India 248001',
             ],
-            'items' => [
-                'description' => $payment->product->name ?? 'Unknown Product',
-                'quantity' => 1,
-                'amount' => $payment->amount,
-                'discount_amount' => $payment->discount_amount,
-                'duration' => "Life Time",
+            'coreProduct' => [
+                'description' => $payment->product->name,
+                'price' => $corePrice,
             ],
-            'coupon' => $coupon ? $coupon->coupon_code : null,
+            'addons' => $addons,
+            'supportPrice' => $supportPrice,
+            'support_year' => $metadata['support_year'],
             'discount' => $discount,
+            'gstAmount' => $gstAmount,
+            'subtotal' => $subtotal,
+            'subtotalAfterDiscount' => $subtotalAfterDiscount,
             'totalAmount' => $totalAmount,
-            'paid_amount' => $payment->amount,
+            'paidAmount' => $payment->amount,
+            'coupon' => $payment->coupon_code,
             'note' => 'Thank you for your payment. If you need to update your payment information, please contact us at info@aplu.com.',
             'footerMessage' => 'This is an automatically generated payment receipt. If you have any queries, please contact support at info@aplu.com or call us at +91-9874563210.',
             'companyLogo' => 'https://push.aplu.io/images/logo-main.png',
+            'payment' => $payment
         ];
 
+        return view('admin.payment.generate-pdf', $data);
+
         // Load the invoice HTML view and pass data
-        $html = view('admin.payment.generate-pdf', $data)->render();
+        // $html = view('admin.payment.generate-pdf', $data)->render();
 
         // Create an instance of Mpdf
         $mpdf = new Mpdf();
@@ -212,5 +340,7 @@ class PaymentController extends Controller
         // Output the PDF to the browser
         return $mpdf->Output('invoice.pdf', 'I');
     }
+
+
 
 }
