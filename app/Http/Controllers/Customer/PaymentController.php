@@ -246,7 +246,7 @@ class PaymentController extends Controller
         $supportPrice = 0;
         if (isset($metadata['support_year']) && $metadata['support_year'] > 1) {
             // Only charge for additional years beyond the first (which is free)
-            $supportPrice = ($metadata['support_price'] ?? 0) * ($metadata['support_year'] - 1);
+            $supportPrice = ($metadata['support_price'] ?? 0);
         }
 
         // Subtotal (product + addons + additional support years)
