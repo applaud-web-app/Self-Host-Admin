@@ -25,6 +25,7 @@ use App\Mail\PaymentSuccess;
 class AuthController extends Controller
 {
     private const PRODUCT_UUID = '3f1b0c9a-e8f7-4aee-a2d4-b67f5e3c9d1a';
+    private const SUPPORT_PRICE = 5000;
 
     public function login(){
 
@@ -196,24 +197,394 @@ class AuthController extends Controller
                         ->where('type', 'addon')
                         ->get();
 
+        $support = self::SUPPORT_PRICE;
         $data = [
             'razorpayKey' => config('services.razorpay.key'),
             'product'     => $product,
             'addons'      => $addons,
+            'support'     => $support
         ];
 
         return view('frontend.auth.checkout', $data);
     }
 
+    // public function callback(Request $request)
+    // {
+    //     dd($request->all());
+    //     // Sanitize phone input
+    //     $request->merge([
+    //         'phone' => preg_replace('/\D+/', '', $request->input('phone'))
+    //     ]);
+       
+    //     // Validate incoming data
+    //     $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users,email',
+    //         'country_code' => 'required|string|max:5',
+    //         'phone' => [
+    //             'required',
+    //             'string',
+    //             'max:20',
+    //             Rule::unique('users')->where(function ($query) use ($request) {
+    //                 return $query->where('country_code', $request->input('country_code'));
+    //             }),
+    //         ],
+    //         'password' => 'required|string|min:8|confirmed',
+    //         'product_uuid' => 'required|string|exists:products,uuid',
+    //         'razorpay_payment_id' => 'required|string',
+    //         'razorpay_order_id' => 'required|string',
+    //         'razorpay_signature' => 'required|string',
+    //         'billing_name' => 'required|string|max:255',
+    //         'state' => 'required|string|max:100',
+    //         'city' => 'required|string|max:100',
+    //         'pin_code' => 'required|string|min:4|max:10',
+    //         'address' => 'required|string|max:500',
+    //         'pan_card' => 'nullable|string|max:20',
+    //         'gst_number' => 'nullable|string|max:20',
+    //         'coupon_code' => 'nullable|string|max:50',
+    //     ]);
+
+    //     // Process the coupon code if provided
+    //     $couponCode = $request->input('coupon_code');
+    //     $discountAmount = 0;
+        
+    //     // Get product
+    //     $product = Product::where('uuid', $request->product_uuid)->where('status', 1)->first();
+    //     if (!$product) {
+    //         return view('frontend.auth.failure', ['error' => 'Product not found or inactive.']);
+    //     }
+
+    //     // Calculate amounts
+    //     $totalAmount = $product->price; // 100
+    //     $gstAmount = $totalAmount * 0.18; // 18
+    //     $subtotal = $totalAmount - $gstAmount; // 100 - 18
+
+    //     if ($couponCode) {
+    //         // Fetch and validate the coupon again (for security)
+    //         $coupon = Coupon::where('coupon_code', $couponCode)
+    //             ->where('status', 1)
+    //             ->where('expiry_date', '>=', now())
+    //             ->first();
+
+    //         if ($coupon) {
+    //             // Calculate the discount (on subtotal before GST)
+    //             $discountAmount = $coupon->discount_type === 'percentage'
+    //                 ? ($coupon->discount_amount / 100) * $subtotal
+    //                 : $coupon->discount_amount;
+
+    //             // Ensure discount doesn't exceed the subtotal
+    //             $discountAmount = min($discountAmount, $subtotal);
+                
+    //             // Recalculate amounts with discount
+    //             $subtotal = $subtotal - $discountAmount;
+    //             $gstAmount = $subtotal * 0.18;
+    //             $totalAmount = $subtotal + $gstAmount;
+    //         }
+    //     }
+
+    //     // Verify the Razorpay payment signature
+    //     try {
+    //         $api = new Api(Config::get('services.razorpay.key'), Config::get('services.razorpay.secret'));
+    //         $api->utility->verifyPaymentSignature([
+    //             'razorpay_order_id' => $request->razorpay_order_id,
+    //             'razorpay_payment_id' => $request->razorpay_payment_id,
+    //             'razorpay_signature' => $request->razorpay_signature
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return view('frontend.auth.failure', ['error' => 'Payment verification failed.']);
+    //     }
+
+    //     // Now create user, payment, and license
+    //     try {
+    //         \DB::beginTransaction();
+
+    //         // Create the user
+    //         $user = User::create([
+    //             'name' => $request->input('name'),
+    //             'email' => $request->input('email'),
+    //             'phone' => $request->input('phone'),
+    //             'password' => Hash::make($request->input('password')),
+    //             'country_code' => $request->input('country_code')
+    //         ]);
+
+    //         // c) Assign "customer" role (as before)
+    //         $user->assignRole('customer');
+
+    //         // Insert into user details
+    //         UserDetail::create([
+    //             'user_id' => $user->id,
+    //             'billing_name' => $request->input('billing_name'),
+    //             'state' => $request->input('state'),
+    //             'city' => $request->input('city'),
+    //             'pin_code' => $request->input('pin_code'),
+    //             'address' => $request->input('address'),
+    //             'pan_card' => $request->input('pan_card'),
+    //             'gst_number' => $request->input('gst_number')
+    //         ]);
+
+    //         // Store the payment with all amount details
+    //         $payment = Payment::create([
+    //             'user_id' => $user->id,
+    //             'product_id' => $product->id,
+    //             'razorpay_order_id' => $request->razorpay_order_id,
+    //             'razorpay_payment_id' => $request->razorpay_payment_id,
+    //             'razorpay_signature' => $request->razorpay_signature,
+    //             'amount' => $totalAmount,
+    //             'coupon_code' => $couponCode,
+    //             'discount_amount' => $discountAmount,
+    //             'status' => 'paid'
+    //         ]);
+
+    //         // Create the license
+    //         License::create([
+    //             'user_id' => $user->id,
+    //             'product_id' => $product->id,
+    //             'payment_id' => $payment->id,
+    //             'status' => 'active',
+    //             'issued_at' => now()
+    //         ]);
+
+    //         try {
+    //             // $user->email
+    //             Mail::to('tdevansh099@gmail.com')->send(new PaymentSuccess($user, $product, $payment, $request->razorpay_order_id));
+    //         } catch (\Throwable $th) {
+    //             Log::error('mail error ' . $th->getMessage());
+    //         }
+
+    //         \DB::commit();
+
+    //         // Automatically log the user in
+    //         Auth::login($user);
+
+    //         return view('frontend.auth.success', [
+    //             'user' => $user,
+    //             'payment' => $payment
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         \DB::rollBack();
+    //         Log::error('Checkout failed: ' . $e->getMessage());
+    //         return view('frontend.auth.failure', ['error' => 'Failed to process the payment.']);
+    //     }
+    // }
+
+    // public function callback(Request $request)
+    // {
+    //     // Sanitize phone input to remove any non-numeric characters
+    //     $request->merge([
+    //         'phone' => preg_replace('/\D+/', '', $request->input('phone'))
+    //     ]);
+        
+    //     // Validate the incoming request
+    //     $validated = $request->validate([
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:users,email',
+    //         'country_code' => 'required|string|max:5',
+    //         'phone' => [
+    //             'required',
+    //             'string',
+    //             'max:20',
+    //             Rule::unique('users')->where(function ($query) use ($request) {
+    //                 return $query->where('country_code', $request->input('country_code'));
+    //             }),
+    //         ],
+    //         'password' => 'required|string|min:8|confirmed',
+    //         'product_uuid' => 'required|string|exists:products,uuid',
+    //         'razorpay_payment_id' => 'required|string',
+    //         'razorpay_order_id' => 'required|string',
+    //         'razorpay_signature' => 'required|string',
+    //         'billing_name' => 'required|string|max:255',
+    //         'state' => 'required|string|max:100',
+    //         'city' => 'required|string|max:100',
+    //         'pin_code' => 'required|string|min:4|max:10',
+    //         'address' => 'required|string|max:500',
+    //         'pan_card' => 'nullable|string|max:20',
+    //         'gst_number' => 'nullable|string|max:20',
+    //         'coupon_code' => 'nullable|string|max:50',
+    //         'addons' => 'nullable|array',
+    //         'addons.*' => 'exists:products,uuid',
+    //         'support_years' => 'required|integer|min:1|max:10',
+    //     ]);
+
+    //     // Get the product and verify it exists
+    //     $product = Product::where('uuid', $request->product_uuid)->where('status', 1)->where('type', 'core')->first();
+    //     if (!$product) {
+    //         return view('frontend.auth.failure', ['error' => 'Product not found or inactive.']);
+    //     }
+
+    //     // Initialize variables
+    //     $addons = [];
+    //     $supportYears = (int) $request->input('support_years', 1); // Ensuring it's an integer
+    //     $couponCode = $request->input('coupon_code');
+    //     $discountAmount = 0;
+
+    //     // Fetch addons if provided
+    //     if ($request->has('addons') && count($request->addons) > 0) {
+    //         $addons = Product::whereIn('uuid', $request->addons)
+    //                         ->where('status', 1)
+    //                         ->where('type', 'addon')
+    //                         ->get();
+    //     }
+
+    //     // Calculate amounts
+    //     $supportPrice = config('services.support_price', self::SUPPORT_PRICE); // Price per year after the first free year
+    //     $supportCost = max($supportYears - 1, 0) * $supportPrice;
+        
+    //     // Calculate base product and addons costs (excluding GST)
+    //     $productCost = $product->price;
+    //     $addonsCost = collect($addons)->sum('price'); // Sum up the addon prices if available
+        
+    //     // Subtotal before discount and GST
+    //     $subtotal = $productCost + $addonsCost + $supportCost;
+        
+    //     // GST Calculation (18% of subtotal before discount)
+    //     $gstAmount = $subtotal * 0.18;
+    //     $totalAmount = $subtotal + $gstAmount; // Total after adding GST
+
+    //     // Process coupon if provided
+    //     if ($couponCode) {
+    //         $coupon = Coupon::where('coupon_code', $couponCode)
+    //             ->where('status', 1)
+    //             ->where('expiry_date', '>=', now())
+    //             ->first();
+
+    //         if ($coupon) {
+    //             // Calculate discount based on subtotal before GST
+    //             $discountAmount = $coupon->discount_type === 'percentage'
+    //                 ? ($coupon->discount_amount / 100) * $subtotal
+    //                 : $coupon->discount_amount;
+
+    //             // Ensure discount doesn't exceed the subtotal
+    //             $discountAmount = min($discountAmount, $subtotal);
+
+    //             // Recalculate amounts after applying the discount
+    //             $subtotal = max($subtotal - $discountAmount, 0); // Subtotal after discount
+    //             $gstAmount = $subtotal * 0.18; // Recalculate GST based on updated subtotal
+    //             $totalAmount = $subtotal + $gstAmount; // Total amount after GST and discount
+    //         }
+    //     }
+
+    //     // Verify Razorpay payment signature
+    //     try {
+    //         $api = new Api(Config::get('services.razorpay.key'), Config::get('services.razorpay.secret'));
+    //         $api->utility->verifyPaymentSignature([
+    //             'razorpay_order_id' => $request->razorpay_order_id,
+    //             'razorpay_payment_id' => $request->razorpay_payment_id,
+    //             'razorpay_signature' => $request->razorpay_signature
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return view('frontend.auth.failure', ['error' => 'Payment verification failed.']);
+    //     }
+
+    //     // Create user, payment, and licenses inside a database transaction
+    //     try {
+    //         \DB::beginTransaction();
+
+    //         // Create the user
+    //         $user = User::create([
+    //             'name' => $validated['name'],
+    //             'email' => $validated['email'],
+    //             'phone' => $validated['phone'],
+    //             'password' => Hash::make($validated['password']),
+    //             'country_code' => $validated['country_code']
+    //         ]);
+
+    //         // Assign "customer" role to the user
+    //         $user->assignRole('customer');
+
+    //         // Create user details
+    //         UserDetail::create([
+    //             'user_id' => $user->id,
+    //             'billing_name' => $validated['billing_name'],
+    //             'state' => $validated['state'],
+    //             'city' => $validated['city'],
+    //             'pin_code' => $validated['pin_code'],
+    //             'address' => $validated['address'],
+    //             'pan_card' => $validated['pan_card'] ?? null,
+    //             'gst_number' => $validated['gst_number'] ?? null
+    //         ]);
+
+    //         // Store the payment with all amounts
+    //         $payment = Payment::create([
+    //             'user_id' => $user->id,
+    //             'product_id' => $product->id,
+    //             'razorpay_order_id' => $validated['razorpay_order_id'],
+    //             'razorpay_payment_id' => $validated['razorpay_payment_id'],
+    //             'razorpay_signature' => $validated['razorpay_signature'],
+    //             'amount' => $totalAmount,
+    //             'coupon_code' => $couponCode,
+    //             'discount_amount' => $discountAmount,
+    //             'status' => 'paid',
+    //             'support_years' => $supportYears,
+    //             'support_yearly_price' => self::SUPPORT_PRICE,
+    //             // Convert metadata array to JSON
+    //             'metadata' => json_encode([
+    //                 'product_price' => $productCost,
+    //                 'addons_price' => $addonsCost,
+    //                 'support_price' => $supportCost,
+    //                 'gst_amount' => $gstAmount,
+    //                 'subtotal' => $subtotal + $discountAmount,
+    //             ]),
+    //         ]);
+
+    //         // Create licenses for the product
+    //         License::create([
+    //             'user_id' => $user->id,
+    //             'product_id' => $product->id,
+    //             'payment_id' => $payment->id,
+    //             'status' => 'active',
+    //             'issued_at' => now(),
+    //             'expires_at' => null, // or set expiration if applicable
+    //         ]);
+
+    //         // Create licenses for each selected addon
+    //         foreach ($addons as $addon) {
+    //             License::create([
+    //                 'user_id' => $user->id,
+    //                 'product_id' => $addon->id, // assuming addons are also products
+    //                 'payment_id' => $payment->id,
+    //                 'status' => 'active',
+    //                 'issued_at' => now()
+    //             ]);
+    //         }
+
+    //         // Send email notification (if required)
+    //         try {
+    //             Mail::to($user->email)->send(new PaymentSuccess($user, $product, $payment, $validated['razorpay_order_id'], $addons));
+    //         } catch (\Throwable $th) {
+    //             Log::error('Mail error: ' . $th->getMessage());
+    //         }
+
+    //         \DB::commit(); // Commit the transaction
+
+    //         // Automatically log the user in
+    //         Auth::login($user);
+
+    //         // Return success view with relevant data
+    //         return view('frontend.auth.success', [
+    //             'user' => $user,
+    //             'payment' => $payment,
+    //             'product' => $product,
+    //             'addons' => $addons
+    //         ]);
+
+    //     } catch (\Exception $e) {
+    //         \DB::rollBack(); // Rollback if something fails
+    //         Log::error('Checkout failed: ' . $e->getMessage());
+
+    //         return view('frontend.auth.failure', ['error' => 'Failed to process the payment.']);
+    //     }
+    // }
+
     public function callback(Request $request)
     {
-        // Sanitize phone input
+        // Sanitize phone input to remove any non-numeric characters
         $request->merge([
             'phone' => preg_replace('/\D+/', '', $request->input('phone'))
         ]);
-       
-        // Validate incoming data
-        $request->validate([
+
+        // Validate the incoming request
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email',
             'country_code' => 'required|string|max:5',
@@ -238,47 +609,70 @@ class AuthController extends Controller
             'pan_card' => 'nullable|string|max:20',
             'gst_number' => 'nullable|string|max:20',
             'coupon_code' => 'nullable|string|max:50',
+            'addons' => 'nullable|array',
+            'addons.*' => 'exists:products,uuid',
+            'support_years' => 'required|integer|min:1|max:10',
         ]);
 
-        // Process the coupon code if provided
-        $couponCode = $request->input('coupon_code');
-        $discountAmount = 0;
-        
-        // Get product
-        $product = Product::where('uuid', $request->product_uuid)->where('status', 1)->first();
+        // Get the product and verify it exists
+        $product = Product::where('uuid', $request->product_uuid)->where('status', 1)->where('type', 'core')->first();
         if (!$product) {
             return view('frontend.auth.failure', ['error' => 'Product not found or inactive.']);
         }
 
-        // Calculate amounts
-        $totalAmount = $product->price; // 100
-        $gstAmount = $totalAmount * 0.18; // 18
-        $subtotal = $totalAmount - $gstAmount; // 100 - 18
+        // Initialize variables
+        $addons = [];
+        $supportYears = (int) $request->input('support_years', 1); // Ensuring it's an integer
+        $couponCode = $request->input('coupon_code');
+        $discountAmount = 0;
 
+        // Fetch addons if provided
+        if ($request->has('addons') && count($request->addons) > 0) {
+            $addons = Product::whereIn('uuid', $request->addons)
+                            ->where('status', 1)
+                            ->where('type', 'addon')
+                            ->get();
+        }
+
+        // Calculate amounts
+        $supportPrice = config('services.support_price', self::SUPPORT_PRICE); // Price per year after the first free year
+        $supportCost = max($supportYears - 1, 0) * $supportPrice;
+        
+        // Calculate base product and addons costs (excluding GST)
+        $productCost = $product->price;
+        $addonsCost = collect($addons)->sum('price'); // Sum up the addon prices if available
+        
+        // Subtotal before discount and GST
+        $subtotal = $productCost + $addonsCost + $supportCost;
+        
+        // GST Calculation (18% of subtotal before discount)
+        $gstAmount = $subtotal * 0.18;
+        $totalAmount = $subtotal + $gstAmount; // Total after adding GST
+
+        // Process coupon if provided
         if ($couponCode) {
-            // Fetch and validate the coupon again (for security)
             $coupon = Coupon::where('coupon_code', $couponCode)
                 ->where('status', 1)
                 ->where('expiry_date', '>=', now())
                 ->first();
 
             if ($coupon) {
-                // Calculate the discount (on subtotal before GST)
+                // Calculate discount based on subtotal before GST
                 $discountAmount = $coupon->discount_type === 'percentage'
                     ? ($coupon->discount_amount / 100) * $subtotal
                     : $coupon->discount_amount;
 
                 // Ensure discount doesn't exceed the subtotal
                 $discountAmount = min($discountAmount, $subtotal);
-                
-                // Recalculate amounts with discount
-                $subtotal = $subtotal - $discountAmount;
-                $gstAmount = $subtotal * 0.18;
-                $totalAmount = $subtotal + $gstAmount;
+
+                // Recalculate amounts after applying the discount
+                $subtotal = max($subtotal - $discountAmount, 0); // Subtotal after discount
+                $gstAmount = $subtotal * 0.18; // Recalculate GST based on updated subtotal
+                $totalAmount = $subtotal + $gstAmount; // Total amount after GST and discount
             }
         }
 
-        // Verify the Razorpay payment signature
+        // Verify Razorpay payment signature
         try {
             $api = new Api(Config::get('services.razorpay.key'), Config::get('services.razorpay.secret'));
             $api->utility->verifyPaymentSignature([
@@ -290,76 +684,103 @@ class AuthController extends Controller
             return view('frontend.auth.failure', ['error' => 'Payment verification failed.']);
         }
 
-        // Now create user, payment, and license
+        // Create user, payment, and licenses inside a database transaction
         try {
             \DB::beginTransaction();
 
             // Create the user
             $user = User::create([
-                'name' => $request->input('name'),
-                'email' => $request->input('email'),
-                'phone' => $request->input('phone'),
-                'password' => Hash::make($request->input('password')),
-                'country_code' => $request->input('country_code')
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'password' => Hash::make($validated['password']),
+                'country_code' => $validated['country_code']
             ]);
 
-            // c) Assign "customer" role (as before)
+            // Assign "customer" role to the user
             $user->assignRole('customer');
 
-            // Insert into user details
+            // Create user details
             UserDetail::create([
                 'user_id' => $user->id,
-                'billing_name' => $request->input('billing_name'),
-                'state' => $request->input('state'),
-                'city' => $request->input('city'),
-                'pin_code' => $request->input('pin_code'),
-                'address' => $request->input('address'),
-                'pan_card' => $request->input('pan_card'),
-                'gst_number' => $request->input('gst_number')
+                'billing_name' => $validated['billing_name'],
+                'state' => $validated['state'],
+                'city' => $validated['city'],
+                'pin_code' => $validated['pin_code'],
+                'address' => $validated['address'],
+                'pan_card' => $validated['pan_card'] ?? null,
+                'gst_number' => $validated['gst_number'] ?? null
             ]);
 
-            // Store the payment with all amount details
-            $payment = Payment::create([
+            // Store the payment for the core product
+            $corePayment = Payment::create([
                 'user_id' => $user->id,
                 'product_id' => $product->id,
-                'razorpay_order_id' => $request->razorpay_order_id,
-                'razorpay_payment_id' => $request->razorpay_payment_id,
-                'razorpay_signature' => $request->razorpay_signature,
+                'razorpay_order_id' => $validated['razorpay_order_id'],
+                'razorpay_payment_id' => $validated['razorpay_payment_id'],
+                'razorpay_signature' => $validated['razorpay_signature'],
                 'amount' => $totalAmount,
                 'coupon_code' => $couponCode,
                 'discount_amount' => $discountAmount,
-                'status' => 'paid'
+                'status' => 'paid',
+                'support_years' => $supportYears,
+                'support_yearly_price' => self::SUPPORT_PRICE,
+                'metadata' => json_encode([
+                    'product_price' => $productCost,
+                    'addons_price' => $addonsCost,
+                    'support_price' => $supportCost,
+                    'gst_amount' => $gstAmount,
+                    'subtotal' => $subtotal + $discountAmount,
+                ]),
+                'is_grouped' => 0
             ]);
 
-            // Create the license
+            // Create licenses for the core product
             License::create([
                 'user_id' => $user->id,
                 'product_id' => $product->id,
-                'payment_id' => $payment->id,
+                'payment_id' => $corePayment->id,
                 'status' => 'active',
                 'issued_at' => now()
             ]);
 
-            try {
-                // $user->email
-                Mail::to('tdevansh099@gmail.com')->send(new PaymentSuccess($user, $product, $payment, $request->razorpay_order_id));
-            } catch (\Throwable $th) {
-                Log::error('mail error ' . $th->getMessage());
+            // Create separate payments and licenses for each addon
+            foreach ($addons as $addon) {
+                $addonPayment = Payment::create([
+                    'user_id' => $user->id,
+                    'product_id' => $addon->id,
+                    'razorpay_order_id' => 'addon_' . uniqid(),
+                    'razorpay_payment_id' => 'addon_' . uniqid(),
+                    'razorpay_signature' => 'addon_signature',
+                    'amount' => $addon->price,
+                    'status' => 'paid',
+                    'is_grouped' => $corePayment->id,
+                ]);
+
+                License::create([
+                    'user_id' => $user->id,
+                    'product_id' => $addon->id,
+                    'payment_id' => $addonPayment->id,
+                    'status' => 'active',
+                    'issued_at' => now()
+                ]);
             }
 
             \DB::commit();
 
-            // Automatically log the user in
             Auth::login($user);
 
+            // Return success view with relevant data
             return view('frontend.auth.success', [
                 'user' => $user,
-                'payment' => $payment
+                'payment' => $corePayment,
+                'addons' => $addons
             ]);
 
         } catch (\Exception $e) {
-            \DB::rollBack();
+            \DB::rollBack(); // Rollback if something fails
             Log::error('Checkout failed: ' . $e->getMessage());
+
             return view('frontend.auth.failure', ['error' => 'Failed to process the payment.']);
         }
     }
@@ -743,7 +1164,7 @@ class AuthController extends Controller
 
             // Calculate support cost (first year free)
             $supportYears = max($request->support_years - 1, 0);
-            $supportTotal = $supportYears * 5000; // ₹5000 per year (excluding GST)
+            $supportTotal = $supportYears * self::SUPPORT_PRICE; // ₹5000 per year (excluding GST)
 
             // Apply coupon discount (if applicable)
             $discount = 0;

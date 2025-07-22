@@ -42,6 +42,7 @@ class PaymentController extends Controller
                         $q->select('id', 'name', 'type');
                     }
                 ])
+                ->where('is_grouped', 0)
                 ->where('user_id', $userId)
                 // Filter: Order ID (partial)
                 ->when($request->filled('order_id'), function ($q) use ($request) {

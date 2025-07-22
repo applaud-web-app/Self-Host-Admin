@@ -15,6 +15,10 @@ class Payment extends Model
         'amount',
         'coupon_code',
         'discount_amount',
+        'support_years',
+        'support_yearly_price',
+        'metadata',
+        'is_grouped',
         'status',
     ];
 

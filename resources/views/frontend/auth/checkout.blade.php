@@ -652,9 +652,9 @@ h5::after {
                             </div>
 
                             <div class="coupon-section">
-                                <h5>Personal Support</h5><span class="text-primary">₹5,000/year (after 1st year)</span>
+                                <h5>Personal Support</h5><span class="text-primary">₹{{$support}}/year (1st year free)</span>
                                 <p class="support-description">
-                                    Your purchase includes 1 year of personal support. Add more years now at ₹5,000/year.
+                                    Your purchase includes one year of free personal support. For subsequent years, support can be extended at ₹{{$support}}/year.
                                 </p>
                                 <div class="quantity-selector">
                                     <button type="button" class="quantity-btn" id="decrease-support">-</button>
@@ -684,7 +684,7 @@ h5::after {
                                     <!-- Personal Support -->
                                     <div class="price-row">
                                         <span class="item">Personal Support <br><span class="text-primary">(1st year free)</span></span>
-                                        <span class="price-with-gst" id="support-price">₹0.00</span>
+                                        <span class="price-with-gst" id="support-price"><s>₹5000.00</s> ₹0.00</span>
                                     </div>
 
                                     <div class="price-divider"></div>
@@ -1273,7 +1273,7 @@ h5::after {
     // Fetch product pricing data and setup calculations
     document.addEventListener('DOMContentLoaded', function() {
         const gstRate = 0.18;
-        const supportPricePerYear = 5000; // ₹5000 per year (excluding GST)
+        const supportPricePerYear = {{$support}}; // per year (excluding GST)
 
         let currentPrices = {
             coreProduct: parseFloat('{{ $product->price }}'), // Already excluding GST
@@ -1325,7 +1325,13 @@ h5::after {
             // Update UI
             $('#core-product-price').text(`₹${currentPrices.coreProduct.toFixed(2)}`);
             updateAddonsPriceRows();
-            $('#support-price').text(`₹${supportTotal.toFixed(2)}`);
+            if (supportTotal === 0) {
+                $('#support-price').html('<s class="text-primary me-1">₹5000.00</s> ₹0.00');
+            } else {
+                $('#support-price').text(`₹${supportTotal.toFixed(2)}`);
+            }
+
+            // $('#support-price').text(`₹${supportTotal.toFixed(2)}`);
             $('#sub-total-amount').text(`₹${subtotal.toFixed(2)}`);
             $('#discount-amount').text(`-₹${currentPrices.discount.toFixed(2)}`);
             $('#total-gst-amount').text(`₹${gstAmount.toFixed(2)}`);
