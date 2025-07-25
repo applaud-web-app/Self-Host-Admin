@@ -32,8 +32,8 @@ Route::controller(AuthController::class)->group(function () {
 
 
 // First page is login
-Route::get('/', [Controller::class, 'index'])->name('index');
-Route::get('/home', [Controller::class, 'login'])->name('home');
+Route::get('/', [AuthController::class, 'login'])->name('index');
+Route::get('/home', [AuthController::class, 'login'])->name('home');
 
 // Optional: Home page (static)
 Route::get('/dashboard', [Controller::class, 'dashboard'])->name('dashboard');
